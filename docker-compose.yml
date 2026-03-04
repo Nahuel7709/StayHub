@@ -1,0 +1,14 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: stayhub-mysql
+    environment:
+      MYSQL_DATABASE: stayhub
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - stayhub_mysql_data:/var/lib/mysql
+
+volumes:
+  stayhub_mysql_data:
