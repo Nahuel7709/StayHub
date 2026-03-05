@@ -48,6 +48,11 @@ public class AccommodationController {
         return service.adminList();
     }
 
+    @GetMapping("/admin/cards")
+    public List<AccommodationCardResponse> adminCards() {
+        return service.adminCards();
+    }
+
     // detail
     @GetMapping("/{id}")
     public AccommodationResponse getById(@PathVariable String id) {

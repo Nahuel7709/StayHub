@@ -1,0 +1,75 @@
+import { api } from "./client";
+
+function toErrorMessage(err) {
+  const data = err?.response?.data;
+  return data?.message || err?.message || "Error de red";
+}
+
+export async function fetchRandomAccommodations(limit = 10) {
+  try {
+    const res = await api.get("/accommodations/random", { params: { limit } });
+    return Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    throw new Error(toErrorMessage(err));
+  }
+}
+
+export async function fetchAccommodationsPage({ page = 0, size = 10 } = {}) {
+  try {
+    const res = await api.get("/accommodations", { params: { page, size } });
+    return res.data;
+  } catch (err) {
+    throw new Error(toErrorMessage(err));
+  }
+}
+
+export async function fetchAccommodationById(id) {
+  try {
+    const res = await api.get(`/accommodations/${id}`);
+    return res.data;
+  } catch (err) {
+    const data = err?.response?.data;
+    throw new Error(data?.message || err?.message || "Error cargando detalle");
+  }
+}
+export async function deleteAccommodation(id) {
+  try {
+    await api.delete(`/accommodations/${id}`);
+    return true;
+  } catch (err) {
+    throw new Error(toErrorMessage(err));
+  }
+}
+
+export async function fetchAdminAccommodations() {
+  try {
+    const res = await api.get("/accommodations/admin");
+    return Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    throw new Error(toErrorMessage(err));
+  }
+}
+
+export async function fetchAdminAccommodationCards() {
+  try {
+    const res = await api.get("/accommodations/admin/cards");
+    return Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    const data = err?.response?.data;
+    throw new Error(data?.message || err?.message || "Error cargando admin");
+  }
+}
+
+export async function createAccommodation(payload) {
+  try {
+    const res = await api.post("/accommodations", payload);
+    return res.data;
+  } catch (err) {
+    const data = err?.response?.data;
+    const message = data?.message || err?.message || "Error al crear";
+    const fields = data?.fields || null;
+    const e = new Error(message);
+    e.fields = fields;
+    throw e;
+  }
+}

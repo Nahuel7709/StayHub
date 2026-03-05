@@ -98,6 +98,12 @@ public class AccommodationService {
         return repo.findAdminRows();
     }
 
+    @Transactional(readOnly = true)
+    public List<AccommodationCardResponse> adminCards() {
+        var list = repo.findAll(Sort.by("name").ascending());
+        return list.stream().map(this::toCard).toList();
+    }
+
 
     private AccommodationResponse toResponse(Accommodation a) {
         var images = a.getImages().stream()

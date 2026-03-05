@@ -83,7 +83,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 )
         );
 
-        
+
         seedAccommodation(
                 "Hotel Puerto Madero Sky",
                 "Vista al río y amenities premium.",
@@ -174,6 +174,255 @@ public class DatabaseSeeder implements CommandLineRunner {
                         "https://picsum.photos/seed/stayhub-tigre-2/800/600"
                 )
         );
+
+        seedAccommodation(
+                "Palermo Soho Studio",
+                "Monoambiente moderno a pasos de bares y tiendas.",
+                AccommodationType.APARTMENT,
+                "Buenos Aires",
+                "Argentina",
+                new BigDecimal("76000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-palermo-1/800/600",
+                        "https://picsum.photos/seed/stayhub-palermo-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Recoleta Classic Apartment",
+                "Departamento amplio en zona histórica, cerca de parques y museos.",
+                AccommodationType.APARTMENT,
+                "Buenos Aires",
+                "Argentina",
+                new BigDecimal("95000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-recoleta-1/800/600",
+                        "https://picsum.photos/seed/stayhub-recoleta-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "San Telmo Loft House",
+                "Casa tipo loft con patio interno, ideal para escapada urbana.",
+                AccommodationType.HOUSE,
+                "Buenos Aires",
+                "Argentina",
+                new BigDecimal("110000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-santelmo-1/800/600",
+                        "https://picsum.photos/seed/stayhub-santelmo-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Puerto Madero Premium Stay",
+                "Alojamiento premium con vista a la ciudad y excelente ubicación.",
+                AccommodationType.HOTEL,
+                "Buenos Aires",
+                "Argentina",
+                new BigDecimal("180000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-puertomadero-1/800/600",
+                        "https://picsum.photos/seed/stayhub-puertomadero-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Bariloche Lakeside House",
+                "Casa cálida con vista al lago, calefacción y parrilla.",
+                AccommodationType.HOUSE,
+                "San Carlos de Bariloche",
+                "Argentina",
+                new BigDecimal("210000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-bariloche-1/800/600",
+                        "https://picsum.photos/seed/stayhub-bariloche-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Villa La Angostura BnB",
+                "BnB tranquilo rodeado de bosque, desayuno casero incluido.",
+                AccommodationType.BNB,
+                "Villa La Angostura",
+                "Argentina",
+                new BigDecimal("140000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-angostura-1/800/600",
+                        "https://picsum.photos/seed/stayhub-angostura-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "San Martín de los Andes Mountain BnB",
+                "BnB con vista a la montaña, ambiente familiar y cálido.",
+                AccommodationType.BNB,
+                "San Martín de los Andes",
+                "Argentina",
+                new BigDecimal("155000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-sma-1/800/600",
+                        "https://picsum.photos/seed/stayhub-sma-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Mendoza Wine Route Hotel",
+                "Hotel boutique cerca de bodegas, con desayuno incluido.",
+                AccommodationType.HOTEL,
+                "Mendoza",
+                "Argentina",
+                new BigDecimal("160000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-mendoza-1/800/600",
+                        "https://picsum.photos/seed/stayhub-mendoza-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Chacras de Coria BnB",
+                "BnB con jardín y pileta, ideal para descansar entre viñedos.",
+                AccommodationType.BNB,
+                "Luján de Cuyo",
+                "Argentina",
+                new BigDecimal("175000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-chacras-1/800/600",
+                        "https://picsum.photos/seed/stayhub-chacras-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Nueva Córdoba Central Apartment",
+                "Departamento cómodo cerca de universidades y parques.",
+                AccommodationType.APARTMENT,
+                "Córdoba",
+                "Argentina",
+                new BigDecimal("65000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-cordoba-1/800/600",
+                        "https://picsum.photos/seed/stayhub-cordoba-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Salta Colonial Hotel",
+                "Hotel con encanto colonial en el centro, patio y terraza.",
+                AccommodationType.HOTEL,
+                "Salta",
+                "Argentina",
+                new BigDecimal("120000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-salta-1/800/600",
+                        "https://picsum.photos/seed/stayhub-salta-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Puerto Iguazú Falls Hostel",
+                "Hostel social y limpio, ideal para visitar Cataratas.",
+                AccommodationType.HOSTEL,
+                "Puerto Iguazú",
+                "Argentina",
+                new BigDecimal("42000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-iguazu-1/800/600",
+                        "https://picsum.photos/seed/stayhub-iguazu-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "El Calafate Glaciar Hostel",
+                "Hostel cálido con cocina compartida, cerca del centro.",
+                AccommodationType.HOSTEL,
+                "El Calafate",
+                "Argentina",
+                new BigDecimal("45000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-calafate-1/800/600",
+                        "https://picsum.photos/seed/stayhub-calafate-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Ushuaia End of the World Hotel",
+                "Hotel acogedor con vista al canal, excelente calefacción.",
+                AccommodationType.HOTEL,
+                "Ushuaia",
+                "Argentina",
+                new BigDecimal("190000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-ushuaia-1/800/600",
+                        "https://picsum.photos/seed/stayhub-ushuaia-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Mar del Plata Oceanfront Apartment",
+                "Departamento frente al mar, ideal para verano.",
+                AccommodationType.APARTMENT,
+                "Mar del Plata",
+                "Argentina",
+                new BigDecimal("98000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-mdq-1/800/600",
+                        "https://picsum.photos/seed/stayhub-mdq-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Rosario Riverside Hotel",
+                "Hotel con vista al río Paraná, ubicación céntrica.",
+                AccommodationType.HOTEL,
+                "Rosario",
+                "Argentina",
+                new BigDecimal("115000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-rosario-1/800/600",
+                        "https://picsum.photos/seed/stayhub-rosario-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Cafayate Vineyards BnB",
+                "BnB entre viñedos, desayuno regional y ambiente tranquilo.",
+                AccommodationType.BNB,
+                "Cafayate",
+                "Argentina",
+                new BigDecimal("135000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-cafayate-1/800/600",
+                        "https://picsum.photos/seed/stayhub-cafayate-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "Tilcara Adobe House",
+                "Casa estilo adobe, silenciosa y con vista a los cerros.",
+                AccommodationType.HOUSE,
+                "Tilcara",
+                "Argentina",
+                new BigDecimal("90000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-tilcara-1/800/600",
+                        "https://picsum.photos/seed/stayhub-tilcara-2/800/600"
+                )
+        );
+
+        seedAccommodation(
+                "San Rafael River House",
+                "Casa completa cerca del río, ideal para familias y amigos.",
+                AccommodationType.HOUSE,
+                "San Rafael",
+                "Argentina",
+                new BigDecimal("125000"),
+                List.of(
+                        "https://picsum.photos/seed/stayhub-sanrafael-1/800/600",
+                        "https://picsum.photos/seed/stayhub-sanrafael-2/800/600"
+                )
+        );
+
+
 
         System.out.println("[SEED] Inserted initial accommodations ✅");
     }

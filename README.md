@@ -21,20 +21,23 @@ Proyecto final (Digital House).
 - Swagger / OpenAPI
 
 ### Frontend
-- (por definir / en progreso)
+- React + Vite
+- Tailwind CSS
+- React Router
+- Axios
 
 ---
 
 ## Estructura del repo
 stayhub/
   -backend/ # API Spring Boot
-  -frontend/ # Frontend (en progreso)
+  -frontend/ # React + Vite + Tailwind
   -docker-compose.yml
 
 ## Requisitos
 - Docker + Docker Compose
 - Java 17 (recomendado: Temurin)
-
+- Node.js (para frontend)
 
 ## Nota Seed de datos (dev)
 
@@ -75,7 +78,24 @@ Health: http://localhost:8080/api/health
 
 Swagger UI: http://localhost:8080/api/swagger-ui/index.html
 
+### 4) Correr el frontend
+```
+npm install
+npm run dev
+```
+Rutas principales(Frontend):
 
+/ Home
+
+/accommodations Explorar (paginado)
+
+/accommodations/:id Detalle
+
+/administracion Panel admin
+
+/administracion/agregar
+
+/administracion/lista
 --------
 
 ## 👤 Autor
