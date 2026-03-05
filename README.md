@@ -10,6 +10,10 @@ Proyecto final (Digital House).
 - ⏳ **Sprint 1 (Frontend):** en progreso.
 
 ---
+## Documentación
+- Bitácora / Definición del proyecto (Sprint 1): ./docs/Documentación-Sprint 1.pdf
+- Manual de Identidad: ./docs/Presentación Manual de Identidad StayHub.pdf
+---
 
 ## Tech Stack
 
