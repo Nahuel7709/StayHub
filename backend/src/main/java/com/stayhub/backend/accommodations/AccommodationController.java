@@ -1,15 +1,17 @@
 package com.stayhub.backend.accommodations;
 
 import com.stayhub.backend.accommodations.dto.*;
-import com.stayhub.backend.accommodations.dto.CreateAccommodationRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import io.swagger.v3.oas.annotations.Parameter;
 
 import java.util.List;
 
@@ -21,10 +23,20 @@ public class AccommodationController {
 
     private final AccommodationService service;
 
-    @PostMapping
+    // (Legacy) Crear con JSON (imageUrls)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public AccommodationResponse create(@Valid @RequestBody CreateAccommodationRequest req) {
+    public AccommodationResponse createJson(@Valid @RequestBody CreateAccommodationRequest req) {
         return service.create(req);
+    }
+
+    // Crear con multipart (subida de archivos)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public AccommodationResponse createMultipart(
+            @Valid @ModelAttribute CreateAccommodationForm form
+    ) {
+        return service.createWithUploads(form);
     }
 
     // pagination
@@ -38,7 +50,9 @@ public class AccommodationController {
 
     // random
     @GetMapping("/random")
-    public List<AccommodationCardResponse> random(@RequestParam(defaultValue = "10") @Min(1) @Max(10) int limit) {
+    public List<AccommodationCardResponse> random(
+            @RequestParam(defaultValue = "10") @Min(1) @Max(10) int limit
+    ) {
         return service.random(limit);
     }
 

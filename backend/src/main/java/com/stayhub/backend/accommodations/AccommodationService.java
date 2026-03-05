@@ -1,14 +1,16 @@
 package com.stayhub.backend.accommodations;
 
 import com.stayhub.backend.accommodations.dto.*;
-import com.stayhub.backend.accommodations.dto.CreateAccommodationRequest;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,10 +20,15 @@ public class AccommodationService {
 
     private final AccommodationRepository repo;
 
+    // ✅ JSON create (imageUrls)
     @Transactional
     public AccommodationResponse create(CreateAccommodationRequest req) {
         if (repo.existsByNameIgnoreCase(req.name())) {
             throw new IllegalArgumentException("Ya existe un alojamiento con ese nombre");
+        }
+
+        if (req.imageUrls() == null || req.imageUrls().isEmpty()) {
+            throw new IllegalArgumentException("Debe incluir al menos 1 imagen");
         }
 
         var acc = Accommodation.builder()
@@ -46,6 +53,69 @@ public class AccommodationService {
         } catch (DataIntegrityViolationException e) {
             throw new IllegalArgumentException("Ya existe un alojamiento con ese nombre");
         }
+    }
+
+    // ✅ MULTIPART create (upload files)
+    @Transactional
+    public AccommodationResponse createWithUploads(CreateAccommodationForm form) {
+        if (repo.existsByNameIgnoreCase(form.getName())) {
+            throw new IllegalArgumentException("Ya existe un alojamiento con ese nombre");
+        }
+
+        var imagesArr = form.getImages();
+        if (imagesArr == null || imagesArr.length == 0) {
+            throw new IllegalArgumentException("Debe incluir al menos 1 imagen");
+        }
+
+        Path uploadDir = Paths.get("uploads");
+        try {
+            Files.createDirectories(uploadDir);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("No se pudo crear el directorio de uploads");
+        }
+
+        var acc = Accommodation.builder()
+                .name(form.getName().trim())
+                .description(form.getDescription().trim())
+                .type(form.getType())
+                .city(form.getCity().trim())
+                .country(form.getCountry().trim())
+                .pricePerNight(form.getPricePerNight())
+                .build();
+
+        for (MultipartFile file : imagesArr) {
+            if (file == null || file.isEmpty()) continue;
+
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                throw new IllegalArgumentException("Solo se permiten archivos de imagen");
+            }
+
+            String ext = getExtension(file.getOriginalFilename());
+            String filename = UUID.randomUUID() + (ext.isEmpty() ? "" : "." + ext);
+
+            Path target = uploadDir.resolve(filename).normalize();
+            if (!target.startsWith(uploadDir)) {
+                throw new IllegalArgumentException("Nombre de archivo inválido");
+            }
+
+            try {
+                Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("No se pudo guardar una imagen");
+            }
+
+            String publicUrl = "/api/uploads/" + filename;
+            acc.getImages().add(
+                    AccommodationImage.builder()
+                            .url(publicUrl)
+                            .accommodation(acc)
+                            .build()
+            );
+        }
+
+        var saved = repo.save(acc);
+        return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -77,7 +147,7 @@ public class AccommodationService {
 
     @Transactional(readOnly = true)
     public List<AccommodationCardResponse> random(int limit) {
-        int safeLimit = Math.max(1, Math.min(limit, 10)); // sprint pide máx 10
+        int safeLimit = Math.max(1, Math.min(limit, 10));
         List<String> ids = repo.findRandomIds(safeLimit);
         if (ids.isEmpty()) return List.of();
 
@@ -103,7 +173,6 @@ public class AccommodationService {
         var list = repo.findAll(Sort.by("name").ascending());
         return list.stream().map(this::toCard).toList();
     }
-
 
     private AccommodationResponse toResponse(Accommodation a) {
         var images = a.getImages().stream()
@@ -133,5 +202,12 @@ public class AccommodationService {
                 a.getPricePerNight(),
                 firstImage
         );
+    }
+
+    private String getExtension(String name) {
+        if (name == null) return "";
+        int dot = name.lastIndexOf('.');
+        if (dot < 0 || dot == name.length() - 1) return "";
+        return name.substring(dot + 1).toLowerCase();
     }
 }

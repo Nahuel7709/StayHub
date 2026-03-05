@@ -47,6 +47,14 @@ Si querés “reiniciar” datos de cero:
 docker compose down -v
 docker compose up -d
 
+Y para las imagenes que subiste de alojamientos que creaste(uploads):
+-Windows (PowerShell):
+```Remove-Item -Recurse -Force backend\uploads ```
+
+-Remove-Item -Recurse -Force backend\uploads:
+```rm -rf backend/uploads```
+
+
 Luego reiniciá el backend.
 
 --------------

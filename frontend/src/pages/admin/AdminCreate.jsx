@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { createAccommodation } from "../../api/accommodations";
+import { useNavigate } from "react-router-dom";
+import { createAccommodationMultipart } from "../../api/accommodations";
+import useImagePicker from "../../hooks/useImagePicker";
 
 const TYPES = [
   { value: "HOTEL", label: "Hotel" },
@@ -20,6 +22,8 @@ function Field({ label, error, children }) {
 }
 
 export default function AdminCreate() {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -27,13 +31,20 @@ export default function AdminCreate() {
     city: "",
     country: "Argentina",
     pricePerNight: "",
-    imageUrlsText: "",
   });
+
+  const {
+    files,
+    previewUrls,
+    fileInputRef,
+    onPickFiles,
+    removeFileAt,
+    clearFiles,
+  } = useImagePicker();
 
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
   const [fieldErrors, setFieldErrors] = useState(null);
-  const [createdId, setCreatedId] = useState("");
 
   function set(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -44,13 +55,12 @@ export default function AdminCreate() {
     setSubmitting(true);
     setServerError("");
     setFieldErrors(null);
-    setCreatedId("");
 
-    
-    const imageUrls = form.imageUrlsText
-      .split("\n")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    if (!files.length) {
+      setSubmitting(false);
+      setServerError("Debés subir al menos 1 imagen.");
+      return;
+    }
 
     const payload = {
       name: form.name.trim(),
@@ -60,20 +70,12 @@ export default function AdminCreate() {
       country: form.country.trim(),
       pricePerNight:
         form.pricePerNight === "" ? null : Number(form.pricePerNight),
-      imageUrls,
+      files,
     };
 
     try {
-      const created = await createAccommodation(payload);
-      setCreatedId(created?.id || "");
-      setForm((p) => ({
-        ...p,
-        name: "",
-        description: "",
-        city: "",
-        pricePerNight: "",
-        imageUrlsText: "",
-      }));
+      await createAccommodationMultipart(payload);
+      navigate("/administracion/lista");
     } catch (err) {
       setServerError(err.message || "Error al crear");
       setFieldErrors(err.fields || null);
@@ -94,7 +96,6 @@ export default function AdminCreate() {
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-      
         <form
           onSubmit={onSubmit}
           className="lg:col-span-2 rounded-2xl border border-border bg-card p-6 shadow-sm"
@@ -177,18 +178,66 @@ export default function AdminCreate() {
           </div>
 
           <div className="mt-4">
-            <Field
-              label="Imágenes (1 URL por línea)"
-              error={fieldErrors?.imageUrls}
-            >
-              <textarea
-                className="min-h-[120px] w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none focus:border-primary/40"
-                value={form.imageUrlsText}
-                onChange={(e) => set("imageUrlsText", e.target.value)}
-                placeholder={`https://...\nhttps://...`}
-              />
-            </Field>
-           
+            <label className="block text-sm font-semibold text-primary">
+              Imágenes (1 o más)
+            </label>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={onPickFiles}
+              className="mt-2 w-full rounded-xl border border-border bg-card px-4 py-3 text-sm"
+            />
+
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <p className="text-xs text-secondary/70">
+                Se permiten múltiples imágenes. Formatos: jpg/png/webp.
+              </p>
+
+              {files.length > 0 && (
+                <button
+                  type="button"
+                  onClick={clearFiles}
+                  className="text-xs font-semibold text-accent hover:underline"
+                >
+                  Limpiar
+                </button>
+              )}
+            </div>
+
+            {files.length ? (
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {files.map((file, idx) => (
+                  <div
+                    key={`${file.name}-${file.size}-${file.lastModified}`}
+                    className="relative overflow-hidden rounded-xl border border-border bg-card"
+                  >
+                    <img
+                      src={previewUrls[idx]}
+                      alt={file.name}
+                      className="h-28 w-full object-cover"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => removeFileAt(idx)}
+                      className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/75"
+                      title="Quitar imagen"
+                    >
+                      ×
+                    </button>
+
+                    <div className="px-2 py-2 text-[11px] text-secondary/80">
+                      <div className="truncate" title={file.name}>
+                        {file.name}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="mt-6 flex items-center gap-3">
@@ -205,7 +254,6 @@ export default function AdminCreate() {
               onClick={() => {
                 setServerError("");
                 setFieldErrors(null);
-                setCreatedId("");
               }}
               className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold text-primary hover:bg-zinc-50"
             >
@@ -214,22 +262,13 @@ export default function AdminCreate() {
           </div>
         </form>
 
-    
         <aside className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div className="font-semibold text-primary">Tips</div>
           <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-secondary/80">
             <li>El nombre debe ser único.</li>
             <li>Debe incluir al menos 1 imagen.</li>
+            <li>Al guardar, vas a volver a la lista del panel.</li>
           </ul>
-
-          {createdId ? (
-            <div className="mt-5 rounded-xl border border-border bg-background/60 p-4">
-              <div className="font-semibold text-primary">Creado</div>
-              <div className="mt-1 break-all text-xs text-secondary/80">
-                ID: {createdId}
-              </div>
-            </div>
-          ) : null}
         </aside>
       </div>
     </div>

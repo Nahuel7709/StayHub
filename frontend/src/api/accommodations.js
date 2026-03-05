@@ -73,3 +73,24 @@ export async function createAccommodation(payload) {
     throw e;
   }
 }
+
+//files
+export async function createAccommodationMultipart(payload) {
+  const fd = new FormData();
+  fd.append("name", payload.name);
+  fd.append("description", payload.description);
+  fd.append("type", payload.type);
+  fd.append("city", payload.city);
+  fd.append("country", payload.country);
+
+  if (payload.pricePerNight != null) {
+    fd.append("pricePerNight", String(payload.pricePerNight));
+  }
+
+  for (const f of payload.files || []) {
+    fd.append("images", f); 
+  }
+
+  const res = await api.post("/accommodations", fd);
+  return res.data;
+}

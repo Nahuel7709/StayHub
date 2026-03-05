@@ -57,6 +57,7 @@ Thumbs.db
 **/.classpath
 **/.project
 **/.settings/
+backend/uploads/
 
 # ------------------------------
 # Node / Frontend 
