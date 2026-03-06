@@ -80,7 +80,12 @@ DB_PASSWORD=root
 
 ### 3) Correr el backend
 Desde backend/:
+-En terminal de Git Bash, WSL o Linux/macOS:
 ```./mvnw spring-boot:run```
+-En terminal powershell:
+```.\mvnw.cmd spring-boot:run```
+CMD:
+```mvnw.cmd spring-boot:run```
 
 El backend corre en:
 
