@@ -1,8 +1,12 @@
 package com.stayhub.backend.dev;
 
 import com.stayhub.backend.accommodations.*;
+import com.stayhub.backend.users.Role;
+import com.stayhub.backend.users.User;
+import com.stayhub.backend.users.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -13,9 +17,42 @@ import java.util.List;
 public class DatabaseSeeder implements CommandLineRunner {
 
     private final AccommodationRepository repo;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
+        seedUsers();
+        seedAccommodations();
+    }
+
+    private void seedUsers() {
+        if (!userRepository.existsByEmail("admin@stayhub.com")) {
+            User admin = new User(
+                    "Admin",
+                    "StayHub",
+                    "admin@stayhub.com",
+                    passwordEncoder.encode("Admin12345"),
+                    Role.ADMIN
+            );
+            userRepository.save(admin);
+            System.out.println("[SEED] Admin user created ✅");
+        }
+
+        if (!userRepository.existsByEmail("user@stayhub.com")) {
+            User user = new User(
+                    "User",
+                    "StayHub",
+                    "user@stayhub.com",
+                    passwordEncoder.encode("User12345"),
+                    Role.USER
+            );
+            userRepository.save(user);
+            System.out.println("[SEED] Standard user created ✅");
+        }
+    }
+
+    private void seedAccommodations() {
         if (repo.count() > 0) return;
 
         seedAccommodation(
@@ -421,9 +458,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                         "https://picsum.photos/seed/stayhub-sanrafael-2/800/600"
                 )
         );
-
-
-
         System.out.println("[SEED] Inserted initial accommodations ✅");
     }
 

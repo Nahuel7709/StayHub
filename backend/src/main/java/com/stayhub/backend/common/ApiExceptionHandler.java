@@ -65,4 +65,22 @@ public class ApiExceptionHandler {
     public Map<String, Object> notFound(EntityNotFoundException ex) {
         return Map.of("error", "NOT_FOUND", "message", ex.getMessage());
     }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, Object> conflict(ConflictException ex) {
+        return Map.of(
+                "error", "CONFLICT",
+                "message", ex.getMessage()
+        );
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Map<String, Object> unauthorized(UnauthorizedException ex) {
+        return Map.of(
+                "error", "UNAUTHORIZED",
+                "message", ex.getMessage()
+        );
+    }
 }

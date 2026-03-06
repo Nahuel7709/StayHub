@@ -30,12 +30,16 @@ Proyecto final (Digital House).
 - React Router
 - Axios
 
+### Infra / entorno
+- Docker
+- Docker Compose
 ---
 
 ## Estructura del repo
 stayhub/
   -backend/ # API Spring Boot
   -frontend/ # React + Vite + Tailwind
+  -docs/ # Documentación del proyecto
   -docker-compose.yml
 
 ## Requisitos
@@ -74,9 +78,11 @@ docker compose up -d
 
 ### 2) Configurar variables de entorno
 Crear el archivo backend/.env  con:
-DB_URL=jdbc:mysql://localhost:3306/stayhub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-DB_USERNAME=root
-DB_PASSWORD=root
+- DB_URL=jdbc:mysql://localhost:3306/stayhub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+- DB_USERNAME=root
+- DB_PASSWORD=root
+- JWT_SECRET=stayhub_super_secret_key_2026_muy_larga_y_segura
+- JWT_EXPIRATION_MS=86400000
 
 ### 3) Correr el backend
 Desde backend/:
@@ -95,19 +101,41 @@ Swagger UI: http://localhost:8080/api/swagger-ui/index.html
 npm install
 npm run dev
 ```
-Rutas principales(Frontend):
+---
+### IMPORTANTE: El proyecto incluye usuarios seed para facilitar pruebas y corrección.
+Sin loguearse como admin se bloquea el acceso a ciertas rutas, info:
 
-/ Home
+###Admin:
+-Email: admin@stayhub.com
+-Password: Admin12345
 
-/accommodations Explorar (paginado)
+###User
+-Email: user@stayhub.com
+-Password: User12345
 
-/accommodations/:id Detalle
+##Accesos
 
-/administracion Panel admin
+###Público:
 
-/administracion/agregar
+-POST /auth/register
 
-/administracion/lista
+-POST /auth/login
+
+-GET /accommodations/**
+
+###Requiere autenticación:
+
+-GET /auth/me
+
+###Solo ADMIN:
+
+POST:
+-/accommodations
+
+DELETE:
+-/accommodations/{id}
+-/accommodations/admin/**
+
 --------
 
 ## 👤 Autor
