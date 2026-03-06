@@ -7,6 +7,9 @@ import Footer from "./components/Footer";
 import AccommodationsList from "./pages/AccommodationsList";
 import AdminList from "./pages/admin/AdminList";
 import AdminLayout from "./pages/admin/AdminLayout";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import AdminRoute from "./auth/AdminRoute";
 
 export default function App() {
   return (
@@ -17,11 +20,22 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/accommodations" element={<AccommodationsList />} />
           <Route path="/accommodations/:id" element={<AccommodationDetail />} />
-          <Route path="/administracion" element={<AdminLayout />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+
+          <Route
+            path="/administracion"
+            element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }
+          >
             <Route index element={<Navigate to="lista" replace />} />
             <Route path="lista" element={<AdminList />} />
             <Route path="agregar" element={<AdminCreate />} />
           </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
