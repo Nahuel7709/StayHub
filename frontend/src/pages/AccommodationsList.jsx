@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { fetchAccommodationsPage } from "../api/accommodations";
+import { fetchCategories } from "../api/categories";
 import AccommodationCard from "../components/AccommodationCard";
 import Pagination from "../components/Pagination";
 
@@ -22,16 +23,24 @@ export default function AccommodationsList() {
   const [params, setParams] = useSearchParams();
 
   const page = Math.max(0, Number(params.get("page") ?? 0));
-  const size = 10; 
+  const categoryId = params.get("categoryId") || "";
+  const size = 10;
 
-  const [data, setData] = useState(null); 
+  const [data, setData] = useState(null);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [error, setError] = useState("");
 
   const totalElements = data?.totalElements ?? 0;
   const totalPages = data?.totalPages ?? 0;
-  const number = data?.number ?? page; 
+  const number = data?.number ?? page;
   const content = data?.content ?? [];
+
+  const activeCategory = useMemo(
+    () => categories.find((c) => c.id === categoryId) || null,
+    [categories, categoryId],
+  );
 
   const rangeText = useMemo(() => {
     if (!totalElements) return "Mostrando 0 resultados";
@@ -43,8 +52,9 @@ export default function AccommodationsList() {
   async function load() {
     setLoading(true);
     setError("");
+
     try {
-      const res = await fetchAccommodationsPage({ page, size });
+      const res = await fetchAccommodationsPage({ page, size, categoryId });
       setData(res);
     } catch (e) {
       setError(e?.message ?? "Error cargando listado");
@@ -55,24 +65,62 @@ export default function AccommodationsList() {
   }
 
   useEffect(() => {
+    async function loadCategories() {
+      setLoadingCategories(true);
+      try {
+        const data = await fetchCategories();
+        setCategories(data);
+      } catch {
+        setCategories([]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    }
+
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, categoryId]);
 
   function goToPage(p) {
-    setParams((prev) => {
-      prev.set("page", String(p));
-      return prev;
-    });
+    const next = new URLSearchParams(params);
+    next.set("page", String(p));
+    setParams(next);
+  }
+
+  function clearCategoryFilter() {
+    const next = new URLSearchParams(params);
+    next.delete("categoryId");
+    next.set("page", "0");
+    setParams(next);
   }
 
   return (
     <div className="mx-auto max-w-screen-2xl px-6 py-10">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-serif text-3xl font-semibold text-primary">
             Explorar
           </h1>
+
+          {categoryId && !loadingCategories && activeCategory ? (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                Categoría: {activeCategory.name}
+              </span>
+
+              <button
+                onClick={clearCategoryFilter}
+                className="text-sm font-semibold text-primary hover:underline"
+              >
+                Limpiar filtro
+              </button>
+            </div>
+          ) : null}
+
           <p className="mt-1 text-sm text-secondary/80">{rangeText}</p>
         </div>
 
@@ -116,7 +164,6 @@ export default function AccommodationsList() {
             ))}
           </div>
 
-      
           {totalPages > 1 && (
             <div className="mt-8 flex justify-center">
               <Pagination

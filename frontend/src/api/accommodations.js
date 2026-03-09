@@ -14,9 +14,16 @@ export async function fetchRandomAccommodations(limit = 10) {
   }
 }
 
-export async function fetchAccommodationsPage({ page = 0, size = 10 } = {}) {
+export async function fetchAccommodationsPage({
+  page = 0,
+  size = 10,
+  categoryId,
+} = {}) {
   try {
-    const res = await api.get("/accommodations", { params: { page, size } });
+    const params = { page, size };
+    if (categoryId) params.categoryId = categoryId;
+
+    const res = await api.get("/accommodations", { params });
     return res.data;
   } catch (err) {
     throw new Error(toErrorMessage(err));
@@ -32,6 +39,7 @@ export async function fetchAccommodationById(id) {
     throw new Error(data?.message || err?.message || "Error cargando detalle");
   }
 }
+
 export async function deleteAccommodation(id) {
   try {
     await api.delete(`/accommodations/${id}`);
@@ -74,7 +82,6 @@ export async function createAccommodation(payload) {
   }
 }
 
-//files
 export async function createAccommodationMultipart(payload) {
   const fd = new FormData();
   fd.append("name", payload.name);
@@ -87,8 +94,12 @@ export async function createAccommodationMultipart(payload) {
     fd.append("pricePerNight", String(payload.pricePerNight));
   }
 
+  if (payload.categoryId) {
+    fd.append("categoryId", payload.categoryId);
+  }
+
   for (const f of payload.files || []) {
-    fd.append("images", f); 
+    fd.append("images", f);
   }
 
   const res = await api.post("/accommodations", fd);

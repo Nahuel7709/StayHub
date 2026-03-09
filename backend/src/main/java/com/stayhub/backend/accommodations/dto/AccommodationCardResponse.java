@@ -8,5 +8,6 @@ public record AccommodationCardResponse(
         String city,
         String country,
         BigDecimal pricePerNight,
-        String imageUrl
+        String imageUrl,
+        AccommodationCategoryResponse category
 ) {}

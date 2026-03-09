@@ -49,6 +49,11 @@ public class CreateAccommodationForm {
     public String getCountry() { return country; }
     public void setCountry(String country) { this.country = country; }
 
+    private String categoryId;
+
+    public String getCategoryId() { return categoryId; }
+    public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
+
     public BigDecimal getPricePerNight() { return pricePerNight; }
     public void setPricePerNight(BigDecimal pricePerNight) { this.pricePerNight = pricePerNight; }
 

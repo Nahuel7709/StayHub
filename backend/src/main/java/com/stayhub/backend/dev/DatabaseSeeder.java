@@ -1,6 +1,8 @@
 package com.stayhub.backend.dev;
 
 import com.stayhub.backend.accommodations.*;
+import com.stayhub.backend.categories.Category;
+import com.stayhub.backend.categories.CategoryRepository;
 import com.stayhub.backend.users.Role;
 import com.stayhub.backend.users.User;
 import com.stayhub.backend.users.UserRepository;
@@ -10,20 +12,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 public class DatabaseSeeder implements CommandLineRunner {
 
     private final AccommodationRepository repo;
+    private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
         seedUsers();
-        seedAccommodations();
+        Map<String, Category> categories = seedCategories();
+        seedAccommodations(categories);
     }
 
     private void seedUsers() {
@@ -52,7 +58,57 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
     }
 
-    private void seedAccommodations() {
+    private Map<String, Category> seedCategories() {
+        Map<String, Category> categories = new HashMap<>();
+
+        categories.put("Ciudad", getOrCreateCategory(
+                "Ciudad",
+                "Alojamientos urbanos ideales para turismo o viajes de trabajo.",
+                "https://picsum.photos/seed/category-city/800/600"
+        ));
+
+        categories.put("Playa", getOrCreateCategory(
+                "Playa",
+                "Opciones cerca del mar para escapadas y vacaciones.",
+                "https://picsum.photos/seed/category-beach/800/600"
+        ));
+
+        categories.put("Montaña", getOrCreateCategory(
+                "Montaña",
+                "Alojamientos en zonas de montaña con vistas y naturaleza.",
+                "https://picsum.photos/seed/category-mountain/800/600"
+        ));
+
+        categories.put("Naturaleza", getOrCreateCategory(
+                "Naturaleza",
+                "Espacios rodeados de verde, ríos, bosques o paisajes naturales.",
+                "https://picsum.photos/seed/category-nature/800/600"
+        ));
+
+        categories.put("Viñedos", getOrCreateCategory(
+                "Viñedos",
+                "Estadías cerca de bodegas y rutas del vino.",
+                "https://picsum.photos/seed/category-wine/800/600"
+        ));
+
+        System.out.println("[SEED] Categories ready ✅");
+        return categories;
+    }
+
+    private Category getOrCreateCategory(String name, String description, String imageUrl) {
+        return categoryRepository.findAll().stream()
+                .filter(c -> c.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElseGet(() -> categoryRepository.save(
+                        Category.builder()
+                                .name(name)
+                                .description(description)
+                                .imageUrl(imageUrl)
+                                .build()
+                ));
+    }
+
+    private void seedAccommodations(Map<String, Category> categories) {
         if (repo.count() > 0) return;
 
         seedAccommodation(
@@ -62,6 +118,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Buenos Aires",
                 "Argentina",
                 new BigDecimal("120000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-palermo-1/800/600",
                         "https://picsum.photos/seed/stayhub-palermo-2/800/600"
@@ -75,6 +132,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Buenos Aires",
                 "Argentina",
                 new BigDecimal("98000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-recoleta-1/800/600",
                         "https://picsum.photos/seed/stayhub-recoleta-2/800/600"
@@ -88,6 +146,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Córdoba",
                 "Argentina",
                 new BigDecimal("75000"),
+                categories.get("Naturaleza"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-cordoba-1/800/600",
                         "https://picsum.photos/seed/stayhub-cordoba-2/800/600"
@@ -101,6 +160,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "San Carlos de Bariloche",
                 "Argentina",
                 new BigDecimal("110000"),
+                categories.get("Montaña"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-bariloche-1/800/600",
                         "https://picsum.photos/seed/stayhub-bariloche-2/800/600"
@@ -114,12 +174,12 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Mendoza",
                 "Argentina",
                 new BigDecimal("35000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-mendoza-1/800/600",
                         "https://picsum.photos/seed/stayhub-mendoza-2/800/600"
                 )
         );
-
 
         seedAccommodation(
                 "Hotel Puerto Madero Sky",
@@ -128,6 +188,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Buenos Aires",
                 "Argentina",
                 new BigDecimal("150000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-puerto-1/800/600",
                         "https://picsum.photos/seed/stayhub-puerto-2/800/600"
@@ -141,6 +202,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Salta",
                 "Argentina",
                 new BigDecimal("68000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-salta-1/800/600",
                         "https://picsum.photos/seed/stayhub-salta-2/800/600"
@@ -154,6 +216,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Ushuaia",
                 "Argentina",
                 new BigDecimal("130000"),
+                categories.get("Montaña"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-ushuaia-1/800/600",
                         "https://picsum.photos/seed/stayhub-ushuaia-2/800/600"
@@ -167,6 +230,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Mar del Plata",
                 "Argentina",
                 new BigDecimal("90000"),
+                categories.get("Playa"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-mdq-1/800/600",
                         "https://picsum.photos/seed/stayhub-mdq-2/800/600"
@@ -180,6 +244,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Rosario",
                 "Argentina",
                 new BigDecimal("52000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-rosario-1/800/600",
                         "https://picsum.photos/seed/stayhub-rosario-2/800/600"
@@ -193,6 +258,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "La Plata",
                 "Argentina",
                 new BigDecimal("28000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-lp-1/800/600",
                         "https://picsum.photos/seed/stayhub-lp-2/800/600"
@@ -206,6 +272,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Tigre",
                 "Argentina",
                 new BigDecimal("82000"),
+                categories.get("Naturaleza"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-tigre-1/800/600",
                         "https://picsum.photos/seed/stayhub-tigre-2/800/600"
@@ -219,6 +286,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Buenos Aires",
                 "Argentina",
                 new BigDecimal("76000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-palermo-1/800/600",
                         "https://picsum.photos/seed/stayhub-palermo-2/800/600"
@@ -232,6 +300,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Buenos Aires",
                 "Argentina",
                 new BigDecimal("95000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-recoleta-1/800/600",
                         "https://picsum.photos/seed/stayhub-recoleta-2/800/600"
@@ -245,6 +314,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Buenos Aires",
                 "Argentina",
                 new BigDecimal("110000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-santelmo-1/800/600",
                         "https://picsum.photos/seed/stayhub-santelmo-2/800/600"
@@ -258,6 +328,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Buenos Aires",
                 "Argentina",
                 new BigDecimal("180000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-puertomadero-1/800/600",
                         "https://picsum.photos/seed/stayhub-puertomadero-2/800/600"
@@ -271,6 +342,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "San Carlos de Bariloche",
                 "Argentina",
                 new BigDecimal("210000"),
+                categories.get("Montaña"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-bariloche-1/800/600",
                         "https://picsum.photos/seed/stayhub-bariloche-2/800/600"
@@ -284,6 +356,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Villa La Angostura",
                 "Argentina",
                 new BigDecimal("140000"),
+                categories.get("Montaña"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-angostura-1/800/600",
                         "https://picsum.photos/seed/stayhub-angostura-2/800/600"
@@ -297,6 +370,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "San Martín de los Andes",
                 "Argentina",
                 new BigDecimal("155000"),
+                categories.get("Montaña"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-sma-1/800/600",
                         "https://picsum.photos/seed/stayhub-sma-2/800/600"
@@ -310,6 +384,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Mendoza",
                 "Argentina",
                 new BigDecimal("160000"),
+                categories.get("Viñedos"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-mendoza-1/800/600",
                         "https://picsum.photos/seed/stayhub-mendoza-2/800/600"
@@ -323,6 +398,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Luján de Cuyo",
                 "Argentina",
                 new BigDecimal("175000"),
+                categories.get("Viñedos"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-chacras-1/800/600",
                         "https://picsum.photos/seed/stayhub-chacras-2/800/600"
@@ -336,6 +412,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Córdoba",
                 "Argentina",
                 new BigDecimal("65000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-cordoba-1/800/600",
                         "https://picsum.photos/seed/stayhub-cordoba-2/800/600"
@@ -349,6 +426,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Salta",
                 "Argentina",
                 new BigDecimal("120000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-salta-1/800/600",
                         "https://picsum.photos/seed/stayhub-salta-2/800/600"
@@ -362,6 +440,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Puerto Iguazú",
                 "Argentina",
                 new BigDecimal("42000"),
+                categories.get("Naturaleza"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-iguazu-1/800/600",
                         "https://picsum.photos/seed/stayhub-iguazu-2/800/600"
@@ -375,6 +454,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "El Calafate",
                 "Argentina",
                 new BigDecimal("45000"),
+                categories.get("Naturaleza"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-calafate-1/800/600",
                         "https://picsum.photos/seed/stayhub-calafate-2/800/600"
@@ -388,6 +468,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Ushuaia",
                 "Argentina",
                 new BigDecimal("190000"),
+                categories.get("Montaña"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-ushuaia-1/800/600",
                         "https://picsum.photos/seed/stayhub-ushuaia-2/800/600"
@@ -401,6 +482,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Mar del Plata",
                 "Argentina",
                 new BigDecimal("98000"),
+                categories.get("Playa"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-mdq-1/800/600",
                         "https://picsum.photos/seed/stayhub-mdq-2/800/600"
@@ -414,6 +496,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Rosario",
                 "Argentina",
                 new BigDecimal("115000"),
+                categories.get("Ciudad"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-rosario-1/800/600",
                         "https://picsum.photos/seed/stayhub-rosario-2/800/600"
@@ -427,6 +510,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Cafayate",
                 "Argentina",
                 new BigDecimal("135000"),
+                categories.get("Viñedos"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-cafayate-1/800/600",
                         "https://picsum.photos/seed/stayhub-cafayate-2/800/600"
@@ -440,6 +524,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Tilcara",
                 "Argentina",
                 new BigDecimal("90000"),
+                categories.get("Montaña"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-tilcara-1/800/600",
                         "https://picsum.photos/seed/stayhub-tilcara-2/800/600"
@@ -453,11 +538,13 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "San Rafael",
                 "Argentina",
                 new BigDecimal("125000"),
+                categories.get("Naturaleza"),
                 List.of(
                         "https://picsum.photos/seed/stayhub-sanrafael-1/800/600",
                         "https://picsum.photos/seed/stayhub-sanrafael-2/800/600"
                 )
         );
+
         System.out.println("[SEED] Inserted initial accommodations ✅");
     }
 
@@ -468,6 +555,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             String city,
             String country,
             BigDecimal pricePerNight,
+            Category category,
             List<String> imageUrls
     ) {
         var acc = Accommodation.builder()
@@ -477,6 +565,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .city(city)
                 .country(country)
                 .pricePerNight(pricePerNight)
+                .category(category)
                 .build();
 
         imageUrls.forEach(url -> acc.getImages().add(

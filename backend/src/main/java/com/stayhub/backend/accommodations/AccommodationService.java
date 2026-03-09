@@ -1,6 +1,8 @@
 package com.stayhub.backend.accommodations;
 
 import com.stayhub.backend.accommodations.dto.*;
+import com.stayhub.backend.categories.Category;
+import com.stayhub.backend.categories.CategoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -19,8 +21,8 @@ import java.util.stream.Collectors;
 public class AccommodationService {
 
     private final AccommodationRepository repo;
+    private final CategoryRepository categoryRepository;
 
-    // ✅ JSON create (imageUrls)
     @Transactional
     public AccommodationResponse create(CreateAccommodationRequest req) {
         if (repo.existsByNameIgnoreCase(req.name())) {
@@ -31,6 +33,8 @@ public class AccommodationService {
             throw new IllegalArgumentException("Debe incluir al menos 1 imagen");
         }
 
+        Category category = resolveCategory(req.categoryId());
+
         var acc = Accommodation.builder()
                 .name(req.name().trim())
                 .description(req.description().trim())
@@ -38,6 +42,7 @@ public class AccommodationService {
                 .city(req.city().trim())
                 .country(req.country().trim())
                 .pricePerNight(req.pricePerNight())
+                .category(category)
                 .build();
 
         req.imageUrls().forEach(url -> acc.getImages().add(
@@ -55,7 +60,6 @@ public class AccommodationService {
         }
     }
 
-    // ✅ MULTIPART create (upload files)
     @Transactional
     public AccommodationResponse createWithUploads(CreateAccommodationForm form) {
         if (repo.existsByNameIgnoreCase(form.getName())) {
@@ -74,6 +78,8 @@ public class AccommodationService {
             throw new IllegalArgumentException("No se pudo crear el directorio de uploads");
         }
 
+        Category category = resolveCategory(form.getCategoryId());
+
         var acc = Accommodation.builder()
                 .name(form.getName().trim())
                 .description(form.getDescription().trim())
@@ -81,6 +87,7 @@ public class AccommodationService {
                 .city(form.getCity().trim())
                 .country(form.getCountry().trim())
                 .pricePerNight(form.getPricePerNight())
+                .category(category)
                 .build();
 
         for (MultipartFile file : imagesArr) {
@@ -114,14 +121,24 @@ public class AccommodationService {
             );
         }
 
-        var saved = repo.save(acc);
-        return toResponse(saved);
+        try {
+            var saved = repo.save(acc);
+            return toResponse(saved);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Ya existe un alojamiento con ese nombre");
+        }
     }
 
     @Transactional(readOnly = true)
-    public Page<AccommodationCardResponse> list(int page, int size) {
+    public Page<AccommodationCardResponse> list(int page, int size, String categoryId) {
         var pageable = PageRequest.of(page, size, Sort.by("name").ascending());
-        var result = repo.findAll(pageable);
+
+        Page<Accommodation> result;
+        if (categoryId != null && !categoryId.isBlank()) {
+            result = repo.findByCategoryId(categoryId, pageable);
+        } else {
+            result = repo.findAll(pageable);
+        }
 
         var mapped = result.getContent().stream()
                 .map(this::toCard)
@@ -174,10 +191,27 @@ public class AccommodationService {
         return list.stream().map(this::toCard).toList();
     }
 
+    private Category resolveCategory(String categoryId) {
+        if (categoryId == null || categoryId.isBlank()) {
+            return null;
+        }
+
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
+    }
+
     private AccommodationResponse toResponse(Accommodation a) {
         var images = a.getImages().stream()
                 .map(img -> new AccommodationImageResponse(img.getId(), img.getUrl()))
                 .toList();
+
+        AccommodationCategoryResponse category = null;
+        if (a.getCategory() != null) {
+            category = new AccommodationCategoryResponse(
+                    a.getCategory().getId(),
+                    a.getCategory().getName()
+            );
+        }
 
         return new AccommodationResponse(
                 a.getId(),
@@ -187,6 +221,7 @@ public class AccommodationService {
                 a.getCity(),
                 a.getCountry(),
                 a.getPricePerNight(),
+                category,
                 images
         );
     }
@@ -194,13 +229,22 @@ public class AccommodationService {
     private AccommodationCardResponse toCard(Accommodation a) {
         String firstImage = a.getImages().isEmpty() ? null : a.getImages().get(0).getUrl();
 
+        AccommodationCategoryResponse category = null;
+        if (a.getCategory() != null) {
+            category = new AccommodationCategoryResponse(
+                    a.getCategory().getId(),
+                    a.getCategory().getName()
+            );
+        }
+
         return new AccommodationCardResponse(
                 a.getId(),
                 a.getName(),
                 a.getCity(),
                 a.getCountry(),
                 a.getPricePerNight(),
-                firstImage
+                firstImage,
+                category
         );
     }
 

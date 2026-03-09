@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createAccommodationMultipart } from "../../api/accommodations";
+import { fetchCategories } from "../../api/categories";
 import useImagePicker from "../../hooks/useImagePicker";
 
 const TYPES = [
@@ -31,7 +32,11 @@ export default function AdminCreate() {
     city: "",
     country: "Argentina",
     pricePerNight: "",
+    categoryId: "",
   });
+
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   const {
     files,
@@ -45,6 +50,22 @@ export default function AdminCreate() {
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
   const [fieldErrors, setFieldErrors] = useState(null);
+
+  useEffect(() => {
+    async function loadCategories() {
+      setLoadingCategories(true);
+      try {
+        const data = await fetchCategories();
+        setCategories(data);
+      } catch {
+        setCategories([]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    }
+
+    loadCategories();
+  }, []);
 
   function set(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -70,6 +91,7 @@ export default function AdminCreate() {
       country: form.country.trim(),
       pricePerNight:
         form.pricePerNight === "" ? null : Number(form.pricePerNight),
+      categoryId: form.categoryId || null,
       files,
     };
 
@@ -128,6 +150,26 @@ export default function AdminCreate() {
                 {TYPES.map((t) => (
                   <option key={t.value} value={t.value}>
                     {t.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Categoría" error={fieldErrors?.categoryId}>
+              <select
+                className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none focus:border-primary/40"
+                value={form.categoryId}
+                onChange={(e) => set("categoryId", e.target.value)}
+                disabled={loadingCategories}
+              >
+                <option value="">
+                  {loadingCategories
+                    ? "Cargando categorías..."
+                    : "Sin categoría"}
+                </option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
                   </option>
                 ))}
               </select>
@@ -267,6 +309,7 @@ export default function AdminCreate() {
           <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-secondary/80">
             <li>El nombre debe ser único.</li>
             <li>Debe incluir al menos 1 imagen.</li>
+            <li>Ahora también podés asignar una categoría.</li>
             <li>Al guardar, vas a volver a la lista del panel.</li>
           </ul>
         </aside>

@@ -10,8 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import io.swagger.v3.oas.annotations.Parameter;
 
 import java.util.List;
 
@@ -23,14 +21,12 @@ public class AccommodationController {
 
     private final AccommodationService service;
 
-    // (Legacy) Crear con JSON (imageUrls)
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public AccommodationResponse createJson(@Valid @RequestBody CreateAccommodationRequest req) {
         return service.create(req);
     }
 
-    // Crear con multipart (subida de archivos)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public AccommodationResponse createMultipart(
@@ -39,16 +35,15 @@ public class AccommodationController {
         return service.createWithUploads(form);
     }
 
-    // pagination
     @GetMapping
     public Page<AccommodationCardResponse> list(
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size,
+            @RequestParam(required = false) String categoryId
     ) {
-        return service.list(page, size);
+        return service.list(page, size, categoryId);
     }
 
-    // random
     @GetMapping("/random")
     public List<AccommodationCardResponse> random(
             @RequestParam(defaultValue = "10") @Min(1) @Max(10) int limit
@@ -56,7 +51,6 @@ public class AccommodationController {
         return service.random(limit);
     }
 
-    // admin list
     @GetMapping("/admin")
     public List<AccommodationAdminRowResponse> admin() {
         return service.adminList();
@@ -67,13 +61,11 @@ public class AccommodationController {
         return service.adminCards();
     }
 
-    // detail
     @GetMapping("/{id}")
     public AccommodationResponse getById(@PathVariable String id) {
         return service.getById(id);
     }
 
-    // delete
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String id) {

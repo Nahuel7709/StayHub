@@ -42,6 +42,18 @@ export default function AdminLayout() {
               <NavLink to="lista" className={itemClass}>
                 Lista de alojamientos
               </NavLink>
+              <NavLink
+                to="/administracion/categorias"
+                className={({ isActive }) =>
+                  `block rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                    isActive
+                      ? "bg-white text-primary shadow-sm"
+                      : "border border-border bg-card text-primary hover:bg-zinc-50"
+                  }`
+                }
+              >
+                Categorías
+              </NavLink>
             </div>
           </aside>
 
