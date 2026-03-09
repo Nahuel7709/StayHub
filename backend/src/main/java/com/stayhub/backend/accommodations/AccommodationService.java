@@ -3,6 +3,8 @@ package com.stayhub.backend.accommodations;
 import com.stayhub.backend.accommodations.dto.*;
 import com.stayhub.backend.categories.Category;
 import com.stayhub.backend.categories.CategoryRepository;
+import com.stayhub.backend.features.Feature;
+import com.stayhub.backend.features.FeatureRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -22,6 +24,7 @@ public class AccommodationService {
 
     private final AccommodationRepository repo;
     private final CategoryRepository categoryRepository;
+    private final FeatureRepository featureRepository;
 
     @Transactional
     public AccommodationResponse create(CreateAccommodationRequest req) {
@@ -34,6 +37,7 @@ public class AccommodationService {
         }
 
         Category category = resolveCategory(req.categoryId());
+        Set<Feature> features = resolveFeatures(req.featureIds());
 
         var acc = Accommodation.builder()
                 .name(req.name().trim())
@@ -43,6 +47,7 @@ public class AccommodationService {
                 .country(req.country().trim())
                 .pricePerNight(req.pricePerNight())
                 .category(category)
+                .features(features)
                 .build();
 
         req.imageUrls().forEach(url -> acc.getImages().add(
@@ -79,6 +84,7 @@ public class AccommodationService {
         }
 
         Category category = resolveCategory(form.getCategoryId());
+        Set<Feature> features = resolveFeatures(form.getFeatureIds());
 
         var acc = Accommodation.builder()
                 .name(form.getName().trim())
@@ -88,6 +94,7 @@ public class AccommodationService {
                 .country(form.getCountry().trim())
                 .pricePerNight(form.getPricePerNight())
                 .category(category)
+                .features(features)
                 .build();
 
         for (MultipartFile file : imagesArr) {
@@ -200,6 +207,24 @@ public class AccommodationService {
                 .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
     }
 
+    private Set<Feature> resolveFeatures(List<String> featureIds) {
+        if (featureIds == null || featureIds.isEmpty()) {
+            return new LinkedHashSet<>();
+        }
+
+        Set<Feature> features = new LinkedHashSet<>();
+        for (String featureId : featureIds) {
+            if (featureId == null || featureId.isBlank()) continue;
+
+            Feature feature = featureRepository.findById(featureId)
+                    .orElseThrow(() -> new EntityNotFoundException("Característica no encontrada"));
+
+            features.add(feature);
+        }
+
+        return features;
+    }
+
     private AccommodationResponse toResponse(Accommodation a) {
         var images = a.getImages().stream()
                 .map(img -> new AccommodationImageResponse(img.getId(), img.getUrl()))
@@ -213,6 +238,14 @@ public class AccommodationService {
             );
         }
 
+        var features = a.getFeatures().stream()
+                .map(f -> new AccommodationFeatureResponse(
+                        f.getId(),
+                        f.getName(),
+                        f.getIcon()
+                ))
+                .toList();
+
         return new AccommodationResponse(
                 a.getId(),
                 a.getName(),
@@ -222,6 +255,7 @@ public class AccommodationService {
                 a.getCountry(),
                 a.getPricePerNight(),
                 category,
+                features,
                 images
         );
     }

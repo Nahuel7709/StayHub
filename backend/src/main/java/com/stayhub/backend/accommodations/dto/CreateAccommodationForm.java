@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class CreateAccommodationForm {
 
@@ -31,7 +32,10 @@ public class CreateAccommodationForm {
 
     private BigDecimal pricePerNight;
 
-    // ✅ Multipart files
+    private String categoryId;
+
+    private List<String> featureIds;
+
     private MultipartFile[] images;
 
     public String getName() { return name; }
@@ -49,13 +53,14 @@ public class CreateAccommodationForm {
     public String getCountry() { return country; }
     public void setCountry(String country) { this.country = country; }
 
-    private String categoryId;
+    public BigDecimal getPricePerNight() { return pricePerNight; }
+    public void setPricePerNight(BigDecimal pricePerNight) { this.pricePerNight = pricePerNight; }
 
     public String getCategoryId() { return categoryId; }
     public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
 
-    public BigDecimal getPricePerNight() { return pricePerNight; }
-    public void setPricePerNight(BigDecimal pricePerNight) { this.pricePerNight = pricePerNight; }
+    public List<String> getFeatureIds() { return featureIds; }
+    public void setFeatureIds(List<String> featureIds) { this.featureIds = featureIds; }
 
     public MultipartFile[] getImages() { return images; }
     public void setImages(MultipartFile[] images) { this.images = images; }

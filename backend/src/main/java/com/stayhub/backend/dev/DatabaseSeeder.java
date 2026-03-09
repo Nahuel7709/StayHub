@@ -3,6 +3,8 @@ package com.stayhub.backend.dev;
 import com.stayhub.backend.accommodations.*;
 import com.stayhub.backend.categories.Category;
 import com.stayhub.backend.categories.CategoryRepository;
+import com.stayhub.backend.features.Feature;
+import com.stayhub.backend.features.FeatureRepository;
 import com.stayhub.backend.users.Role;
 import com.stayhub.backend.users.User;
 import com.stayhub.backend.users.UserRepository;
@@ -13,8 +15,10 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -22,13 +26,17 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     private final AccommodationRepository repo;
     private final CategoryRepository categoryRepository;
+    private final FeatureRepository featureRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    private Map<String, Feature> featureCatalog = new HashMap<>();
 
     @Override
     public void run(String... args) {
         seedUsers();
         Map<String, Category> categories = seedCategories();
+        this.featureCatalog = seedFeatures();
         seedAccommodations(categories);
     }
 
@@ -106,6 +114,55 @@ public class DatabaseSeeder implements CommandLineRunner {
                                 .imageUrl(imageUrl)
                                 .build()
                 ));
+    }
+
+    private Map<String, Feature> seedFeatures() {
+        Map<String, Feature> features = new HashMap<>();
+
+        features.put("Wifi", getOrCreateFeature("Wifi", "wifi"));
+        features.put("Pileta", getOrCreateFeature("Pileta", "waves-ladder"));
+        features.put("Pet friendly", getOrCreateFeature("Pet friendly", "paw-print"));
+        features.put("Estacionamiento", getOrCreateFeature("Estacionamiento", "square-parking"));
+        features.put("Televisor", getOrCreateFeature("Televisor", "tv"));
+        features.put("Aire acondicionado", getOrCreateFeature("Aire acondicionado", "snowflake"));
+        features.put("Cocina", getOrCreateFeature("Cocina", "cooking-pot"));
+        features.put("Desayuno", getOrCreateFeature("Desayuno", "utensils"));
+        features.put("Baño privado", getOrCreateFeature("Baño privado", "bath"));
+        features.put("Gimnasio", getOrCreateFeature("Gimnasio", "dumbbell"));
+
+        System.out.println("[SEED] Features ready ✅");
+        return features;
+    }
+
+    private Feature getOrCreateFeature(String name, String icon) {
+        return featureRepository.findByNameIgnoreCase(name)
+                .orElseGet(() -> featureRepository.save(
+                        Feature.builder()
+                                .name(name)
+                                .icon(icon)
+                                .build()
+                ));
+    }
+
+    private Set<Feature> featureSet(String... names) {
+        Set<Feature> set = new LinkedHashSet<>();
+        for (String name : names) {
+            Feature feature = featureCatalog.get(name);
+            if (feature != null) {
+                set.add(feature);
+            }
+        }
+        return set;
+    }
+
+    private Set<Feature> defaultFeaturesFor(AccommodationType type) {
+        return switch (type) {
+            case HOTEL -> featureSet("Wifi", "Aire acondicionado", "Desayuno", "Baño privado");
+            case HOSTEL -> featureSet("Wifi", "Cocina", "Baño privado");
+            case APARTMENT -> featureSet("Wifi", "Cocina", "Aire acondicionado", "Baño privado");
+            case HOUSE -> featureSet("Wifi", "Cocina", "Estacionamiento", "Pet friendly", "Baño privado");
+            case BNB -> featureSet("Wifi", "Desayuno", "Baño privado");
+        };
     }
 
     private void seedAccommodations(Map<String, Category> categories) {
@@ -566,6 +623,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .country(country)
                 .pricePerNight(pricePerNight)
                 .category(category)
+                .features(defaultFeaturesFor(type))
                 .build();
 
         imageUrls.forEach(url -> acc.getImages().add(

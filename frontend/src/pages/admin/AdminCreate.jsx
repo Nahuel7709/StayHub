@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createAccommodationMultipart } from "../../api/accommodations";
 import { fetchCategories } from "../../api/categories";
+import { fetchFeatures } from "../../api/features";
 import useImagePicker from "../../hooks/useImagePicker";
 
 const TYPES = [
@@ -38,6 +39,10 @@ export default function AdminCreate() {
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
+  const [features, setFeatures] = useState([]);
+  const [selectedFeatureIds, setSelectedFeatureIds] = useState([]);
+  const [loadingFeatures, setLoadingFeatures] = useState(true);
+
   const {
     files,
     previewUrls,
@@ -64,11 +69,32 @@ export default function AdminCreate() {
       }
     }
 
+    async function loadFeatures() {
+      setLoadingFeatures(true);
+      try {
+        const data = await fetchFeatures();
+        setFeatures(data);
+      } catch {
+        setFeatures([]);
+      } finally {
+        setLoadingFeatures(false);
+      }
+    }
+
     loadCategories();
+    loadFeatures();
   }, []);
 
   function set(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function toggleFeature(featureId) {
+    setSelectedFeatureIds((prev) =>
+      prev.includes(featureId)
+        ? prev.filter((id) => id !== featureId)
+        : [...prev, featureId],
+    );
   }
 
   async function onSubmit(e) {
@@ -92,6 +118,7 @@ export default function AdminCreate() {
       pricePerNight:
         form.pricePerNight === "" ? null : Number(form.pricePerNight),
       categoryId: form.categoryId || null,
+      featureIds: selectedFeatureIds,
       files,
     };
 
@@ -220,6 +247,46 @@ export default function AdminCreate() {
           </div>
 
           <div className="mt-4">
+            <div className="mb-1 text-sm font-semibold text-primary">
+              Características
+            </div>
+
+            <div className="rounded-2xl border border-border bg-white p-4">
+              {loadingFeatures ? (
+                <p className="text-sm text-secondary/70">
+                  Cargando características...
+                </p>
+              ) : features.length === 0 ? (
+                <p className="text-sm text-secondary/70">
+                  No hay características cargadas.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {features.map((feature) => {
+                    const active = selectedFeatureIds.includes(feature.id);
+
+                    return (
+                      <button
+                        key={feature.id}
+                        type="button"
+                        onClick={() => toggleFeature(feature.id)}
+                        className={[
+                          "rounded-full border px-3 py-2 text-sm font-medium transition",
+                          active
+                            ? "border-primary bg-primary text-white"
+                            : "border-border bg-card text-primary hover:bg-background",
+                        ].join(" ")}
+                      >
+                        {feature.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4">
             <label className="block text-sm font-semibold text-primary">
               Imágenes (1 o más)
             </label>
@@ -309,7 +376,7 @@ export default function AdminCreate() {
           <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-secondary/80">
             <li>El nombre debe ser único.</li>
             <li>Debe incluir al menos 1 imagen.</li>
-            <li>Ahora también podés asignar una categoría.</li>
+            <li>Podés asignar categoría y características.</li>
             <li>Al guardar, vas a volver a la lista del panel.</li>
           </ul>
         </aside>

@@ -13,6 +13,7 @@ public record CreateAccommodationRequest(
         @NotBlank @Size(max = 80) String country,
         BigDecimal pricePerNight,
         String categoryId,
+        List<String> featureIds,
 
         @NotNull @Size(min = 1, message = "Debe incluir al menos 1 imagen")
         List<@NotBlank @Size(max = 500) String> imageUrls

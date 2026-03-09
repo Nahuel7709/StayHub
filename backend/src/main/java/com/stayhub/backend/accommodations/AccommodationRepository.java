@@ -20,6 +20,8 @@ public interface AccommodationRepository extends JpaRepository<Accommodation, St
 
     List<Accommodation> findAllByCategoryId(String categoryId);
 
+    List<Accommodation> findAllByFeaturesId(String featureId);
+
     @Query(value = "select id from accommodations order by rand() limit :limit", nativeQuery = true)
     List<String> findRandomIds(@Param("limit") int limit);
 

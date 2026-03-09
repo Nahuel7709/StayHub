@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { fetchAccommodationById } from "../api/accommodations";
 import ImageGallery from "../components/ImageGallery";
+import FeatureIcon from "../components/FeatureIcon";
 
 function formatPrice(value) {
   if (value == null) return null;
@@ -32,6 +33,7 @@ export default function AccommodationDetail() {
   const [error, setError] = useState("");
 
   const images = useMemo(() => data?.images ?? [], [data]);
+  const features = useMemo(() => data?.features ?? [], [data]);
 
   async function load() {
     setLoading(true);
@@ -100,6 +102,12 @@ export default function AccommodationDetail() {
                 </span>
               ) : null}
 
+              {data?.category?.name ? (
+                <span className="rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-primary">
+                  Categoría: {data.category.name}
+                </span>
+              ) : null}
+
               {price ? (
                 <span className="rounded-full bg-background px-3 py-1 text-xs font-semibold text-primary">
                   {price} / noche
@@ -122,6 +130,35 @@ export default function AccommodationDetail() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <section className="lg:col-span-2">
             <ImageGallery title={data?.name ?? "Alojamiento"} images={images} />
+
+            <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <div className="font-semibold text-primary">
+                ¿Qué ofrece este lugar?
+              </div>
+
+              {features.length === 0 ? (
+                <p className="mt-2 text-sm text-secondary/80">
+                  Este alojamiento no tiene características informadas.
+                </p>
+              ) : (
+                <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {features.map((feature) => (
+                    <div
+                      key={feature.id}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-background/50 px-4 py-3"
+                    >
+                      <FeatureIcon
+                        name={feature.icon}
+                        className="h-5 w-5 text-primary"
+                      />
+                      <span className="text-sm font-medium text-primary">
+                        {feature.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </section>
 
           <aside className="rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -136,8 +173,6 @@ export default function AccommodationDetail() {
             >
               Reservar
             </button>
-
-            <div className="mt-3 text-xs text-secondary/70"></div>
           </aside>
         </div>
       </div>

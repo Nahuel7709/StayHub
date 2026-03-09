@@ -1,0 +1,16 @@
+export const FEATURE_ICON_OPTIONS = [
+  { value: "wifi", label: "Wifi" },
+  { value: "waves-ladder", label: "Pileta" },
+  { value: "paw-print", label: "Pet friendly" },
+  { value: "square-parking", label: "Estacionamiento" },
+  { value: "tv", label: "Televisor" },
+  { value: "snowflake", label: "Aire acondicionado" },
+  { value: "cooking-pot", label: "Cocina" },
+  { value: "dumbbell", label: "Gimnasio" },
+  { value: "trees", label: "Naturaleza" },
+  { value: "map-pin", label: "Ubicación" },
+  { value: "utensils", label: "Desayuno / comedor" },
+  { value: "shield-check", label: "Seguridad" },
+  { value: "bed-double", label: "Dormitorio" },
+  { value: "bath", label: "Baño privado" },
+];

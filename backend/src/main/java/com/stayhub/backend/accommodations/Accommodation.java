@@ -1,12 +1,15 @@
 package com.stayhub.backend.accommodations;
 
 import com.stayhub.backend.categories.Category;
+import com.stayhub.backend.features.Feature;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(
@@ -46,6 +49,15 @@ public class Accommodation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @ManyToMany
+    @JoinTable(
+            name = "accommodation_features",
+            joinColumns = @JoinColumn(name = "accommodation_id"),
+            inverseJoinColumns = @JoinColumn(name = "feature_id")
+    )
+    @Builder.Default
+    private Set<Feature> features = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "accommodation", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

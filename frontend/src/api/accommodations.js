@@ -98,6 +98,10 @@ export async function createAccommodationMultipart(payload) {
     fd.append("categoryId", payload.categoryId);
   }
 
+  for (const featureId of payload.featureIds || []) {
+    fd.append("featureIds", featureId);
+  }
+
   for (const f of payload.files || []) {
     fd.append("images", f);
   }

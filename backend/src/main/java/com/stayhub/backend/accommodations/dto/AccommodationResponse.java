@@ -14,5 +14,6 @@ public record AccommodationResponse(
         String country,
         BigDecimal pricePerNight,
         AccommodationCategoryResponse category,
+        List<AccommodationFeatureResponse> features,
         List<AccommodationImageResponse> images
 ) {}

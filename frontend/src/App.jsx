@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AdminRoute from "./auth/AdminRoute";
 import AdminCategories from "./pages/admin/AdminCategories";
+import AdminFeatures from "./pages/admin/AdminFeatures";
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="lista" element={<AdminList />} />
             <Route path="agregar" element={<AdminCreate />} />
             <Route path="categorias" element={<AdminCategories />} />
+            <Route path="caracteristicas" element={<AdminFeatures />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

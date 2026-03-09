@@ -2,7 +2,7 @@ import { NavLink, Outlet, Link } from "react-router-dom";
 
 const itemClass = ({ isActive }) =>
   [
-    "rounded-xl px-4 py-2 text-sm font-semibold transition border",
+    "rounded-xl px-4 py-3 text-sm font-semibold transition border",
     isActive
       ? "bg-background text-primary border-border"
       : "bg-card text-primary border-border hover:bg-zinc-50",
@@ -42,17 +42,11 @@ export default function AdminLayout() {
               <NavLink to="lista" className={itemClass}>
                 Lista de alojamientos
               </NavLink>
-              <NavLink
-                to="/administracion/categorias"
-                className={({ isActive }) =>
-                  `block rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                    isActive
-                      ? "bg-white text-primary shadow-sm"
-                      : "border border-border bg-card text-primary hover:bg-zinc-50"
-                  }`
-                }
-              >
+              <NavLink to="categorias" className={itemClass}>
                 Categorías
+              </NavLink>
+              <NavLink to="caracteristicas" className={itemClass}>
+                Características
               </NavLink>
             </div>
           </aside>

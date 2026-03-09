@@ -295,9 +295,6 @@ export default function AdminCategories() {
                     <div className="mt-1 text-sm text-secondary/80">
                       {category.description}
                     </div>
-                    <div className="mt-3 break-all text-xs text-secondary/60">
-                      {category.id}
-                    </div>
                   </div>
                 </article>
               ))}
