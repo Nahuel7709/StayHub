@@ -15,5 +15,9 @@ public record AccommodationResponse(
         BigDecimal pricePerNight,
         AccommodationCategoryResponse category,
         List<AccommodationFeatureResponse> features,
-        List<AccommodationImageResponse> images
-) {}
+        List<AccommodationImageResponse> images,
+        String houseRules,
+        String healthAndSafety,
+        String cancellationPolicy
+) {
+}

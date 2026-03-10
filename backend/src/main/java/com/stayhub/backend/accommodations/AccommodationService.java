@@ -5,6 +5,8 @@ import com.stayhub.backend.categories.Category;
 import com.stayhub.backend.categories.CategoryRepository;
 import com.stayhub.backend.features.Feature;
 import com.stayhub.backend.features.FeatureRepository;
+import com.stayhub.backend.reservations.ReservationRepository;
+import com.stayhub.backend.reservations.ReservationStatus;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -15,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,6 +28,10 @@ public class AccommodationService {
     private final AccommodationRepository repo;
     private final CategoryRepository categoryRepository;
     private final FeatureRepository featureRepository;
+    private final ReservationRepository reservationRepository;
+
+    private static final Set<ReservationStatus> ACTIVE_RESERVATION_STATUSES =
+            EnumSet.of(ReservationStatus.PENDING, ReservationStatus.CONFIRMED);
 
     @Transactional
     public AccommodationResponse create(CreateAccommodationRequest req) {
@@ -46,6 +53,9 @@ public class AccommodationService {
                 .city(req.city().trim())
                 .country(req.country().trim())
                 .pricePerNight(req.pricePerNight())
+                .houseRules(normalizeNullable(req.houseRules()))
+                .healthAndSafety(normalizeNullable(req.healthAndSafety()))
+                .cancellationPolicy(normalizeNullable(req.cancellationPolicy()))
                 .category(category)
                 .features(features)
                 .build();
@@ -93,6 +103,9 @@ public class AccommodationService {
                 .city(form.getCity().trim())
                 .country(form.getCountry().trim())
                 .pricePerNight(form.getPricePerNight())
+                .houseRules(normalizeNullable(form.getHouseRules()))
+                .healthAndSafety(normalizeNullable(form.getHealthAndSafety()))
+                .cancellationPolicy(normalizeNullable(form.getCancellationPolicy()))
                 .category(category)
                 .features(features)
                 .build();
@@ -137,21 +150,51 @@ public class AccommodationService {
     }
 
     @Transactional(readOnly = true)
-    public Page<AccommodationCardResponse> list(int page, int size, String categoryId) {
-        var pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+    public Page<AccommodationCardResponse> list(
+            int page,
+            int size,
+            String categoryId,
+            String query,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        String normalizedCategoryId = normalizeNullable(categoryId);
+        String normalizedQuery = normalizeNullable(query);
 
-        Page<Accommodation> result;
-        if (categoryId != null && !categoryId.isBlank()) {
-            result = repo.findByCategoryId(categoryId, pageable);
-        } else {
-            result = repo.findAll(pageable);
+        validateDateRange(startDate, endDate);
+
+        List<Accommodation> allMatches = repo.search(
+                normalizedCategoryId,
+                normalizedQuery,
+                Sort.by("name").ascending()
+        );
+
+        List<Accommodation> filtered = allMatches;
+
+        if (startDate != null && endDate != null) {
+            filtered = allMatches.stream()
+                    .filter(a -> !reservationRepository
+                            .existsByAccommodationIdAndStatusInAndCheckInLessThanAndCheckOutGreaterThan(
+                                    a.getId(),
+                                    ACTIVE_RESERVATION_STATUSES,
+                                    endDate,
+                                    startDate
+                            ))
+                    .toList();
         }
 
-        var mapped = result.getContent().stream()
+        int fromIndex = Math.min(page * size, filtered.size());
+        int toIndex = Math.min(fromIndex + size, filtered.size());
+        List<AccommodationCardResponse> content = filtered.subList(fromIndex, toIndex)
+                .stream()
                 .map(this::toCard)
                 .toList();
 
-        return new PageImpl<>(mapped, pageable, result.getTotalElements());
+        return new PageImpl<>(
+                content,
+                PageRequest.of(page, size, Sort.by("name").ascending()),
+                filtered.size()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -159,6 +202,49 @@ public class AccommodationService {
         var acc = repo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Alojamiento no encontrado"));
         return toResponse(acc);
+    }
+
+    @Transactional(readOnly = true)
+    public AccommodationAvailabilityResponse getAvailability(
+            String accommodationId,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        if (!repo.existsById(accommodationId)) {
+            throw new EntityNotFoundException("Alojamiento no encontrado");
+        }
+
+        validateDateRange(startDate, endDate);
+
+        var reservations = reservationRepository.findByAccommodationIdAndStatusInOrderByCheckInAsc(
+                accommodationId,
+                ACTIVE_RESERVATION_STATUSES
+        );
+
+        var bookedRanges = reservations.stream()
+                .map(r -> new AccommodationAvailabilityResponse.BookedDateRangeResponse(
+                        r.getCheckIn(),
+                        r.getCheckOut()
+                ))
+                .toList();
+
+        boolean available = true;
+
+        if (startDate != null && endDate != null) {
+            available = !reservationRepository
+                    .existsByAccommodationIdAndStatusInAndCheckInLessThanAndCheckOutGreaterThan(
+                            accommodationId,
+                            ACTIVE_RESERVATION_STATUSES,
+                            endDate,
+                            startDate
+                    );
+        }
+
+        return new AccommodationAvailabilityResponse(
+                accommodationId,
+                available,
+                bookedRanges
+        );
     }
 
     @Transactional
@@ -256,7 +342,10 @@ public class AccommodationService {
                 a.getPricePerNight(),
                 category,
                 features,
-                images
+                images,
+                a.getHouseRules(),
+                a.getHealthAndSafety(),
+                a.getCancellationPolicy()
         );
     }
 
@@ -287,5 +376,21 @@ public class AccommodationService {
         int dot = name.lastIndexOf('.');
         if (dot < 0 || dot == name.length() - 1) return "";
         return name.substring(dot + 1).toLowerCase();
+    }
+
+    private String normalizeNullable(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isBlank() ? null : trimmed;
+    }
+
+    private void validateDateRange(LocalDate startDate, LocalDate endDate) {
+        if ((startDate == null && endDate != null) || (startDate != null && endDate == null)) {
+            throw new IllegalArgumentException("Debe enviar startDate y endDate juntos");
+        }
+
+        if (startDate != null && !startDate.isBefore(endDate)) {
+            throw new IllegalArgumentException("La fecha de check-in debe ser anterior al check-out");
+        }
     }
 }

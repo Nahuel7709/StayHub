@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { fetchAccommodationById } from "../api/accommodations";
+import {
+  fetchAccommodationAvailability,
+  fetchAccommodationById,
+} from "../api/accommodations";
 import ImageGallery from "../components/ImageGallery";
 import FeatureIcon from "../components/FeatureIcon";
 
@@ -13,13 +16,26 @@ function formatPrice(value) {
   }
 }
 
+function formatDateLabel(value) {
+  if (!value) return "";
+  try {
+    return new Intl.DateTimeFormat("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(new Date(`${value}T00:00:00`));
+  } catch {
+    return value;
+  }
+}
+
 function Skeleton() {
   return (
     <div className="mx-auto max-w-screen-xl px-6 py-10">
       <div className="h-8 w-64 animate-pulse rounded bg-border/60" />
       <div className="mt-3 h-4 w-80 animate-pulse rounded bg-border/60" />
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 h-[360px] animate-pulse rounded-2xl bg-border/60" />
+        <div className="h-[360px] animate-pulse rounded-2xl bg-border/60 lg:col-span-2" />
         <div className="h-[360px] animate-pulse rounded-2xl bg-border/60" />
       </div>
     </div>
@@ -28,16 +44,29 @@ function Skeleton() {
 
 export default function AccommodationDetail() {
   const { id } = useParams();
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [availability, setAvailability] = useState(null);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState("");
+  const [availabilityMessage, setAvailabilityMessage] = useState("");
+
   const images = useMemo(() => data?.images ?? [], [data]);
   const features = useMemo(() => data?.features ?? [], [data]);
+  const bookedRanges = useMemo(
+    () => availability?.bookedRanges ?? [],
+    [availability],
+  );
 
   async function load() {
     setLoading(true);
     setError("");
+
     try {
       const res = await fetchAccommodationById(id);
       setData(res);
@@ -48,10 +77,71 @@ export default function AccommodationDetail() {
     }
   }
 
+  async function loadAvailabilityWithoutDates() {
+    setAvailabilityError("");
+
+    try {
+      const res = await fetchAccommodationAvailability(id);
+      setAvailability(res);
+    } catch (e) {
+      setAvailabilityError(e?.message ?? "No se pudo cargar la disponibilidad");
+    }
+  }
+
   useEffect(() => {
     load();
+    loadAvailabilityWithoutDates();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  async function handleCheckAvailability() {
+    setAvailabilityError("");
+    setAvailabilityMessage("");
+
+    if ((startDate && !endDate) || (!startDate && endDate)) {
+      setAvailabilityError("Debés completar check-in y check-out juntos.");
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      setAvailabilityError("Seleccioná check-in y check-out.");
+      return;
+    }
+
+    if (startDate >= endDate) {
+      setAvailabilityError(
+        "La fecha de check-in debe ser anterior al check-out.",
+      );
+      return;
+    }
+
+    setAvailabilityLoading(true);
+
+    try {
+      const res = await fetchAccommodationAvailability(id, {
+        startDate,
+        endDate,
+      });
+
+      setAvailability(res);
+
+      if (res.available) {
+        setAvailabilityMessage(
+          `Disponible del ${formatDateLabel(startDate)} al ${formatDateLabel(endDate)}.`,
+        );
+      } else {
+        setAvailabilityMessage(
+          `No disponible del ${formatDateLabel(startDate)} al ${formatDateLabel(endDate)}.`,
+        );
+      }
+    } catch (e) {
+      setAvailabilityError(
+        e?.message ?? "No se pudo consultar la disponibilidad",
+      );
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  }
 
   if (loading) return <Skeleton />;
 
@@ -167,14 +257,129 @@ export default function AccommodationDetail() {
               {data?.description}
             </p>
 
+            <div className="mt-6 border-t border-border pt-6">
+              <div className="font-semibold text-primary">
+                Consultar disponibilidad
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-secondary/70">
+                    Check-in
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-primary outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-secondary/70">
+                    Check-out
+                  </label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-primary outline-none"
+                  />
+                </div>
+
+                <button
+                  onClick={handleCheckAvailability}
+                  disabled={availabilityLoading}
+                  className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {availabilityLoading
+                    ? "Consultando..."
+                    : "Consultar disponibilidad"}
+                </button>
+              </div>
+
+              {availabilityError ? (
+                <div className="mt-3 rounded-xl border border-accent/20 bg-accent/5 px-4 py-3 text-sm text-accent">
+                  {availabilityError}
+                </div>
+              ) : null}
+
+              {availabilityMessage ? (
+                <div
+                  className={`mt-3 rounded-xl px-4 py-3 text-sm font-medium ${
+                    availability?.available
+                      ? "border border-green-200 bg-green-50 text-green-700"
+                      : "border border-red-200 bg-red-50 text-red-700"
+                  }`}
+                >
+                  {availabilityMessage}
+                </div>
+              ) : null}
+
+              <div className="mt-5">
+                <div className="text-sm font-semibold text-primary">
+                  Fechas ocupadas
+                </div>
+
+                {bookedRanges.length === 0 ? (
+                  <p className="mt-2 text-sm text-secondary/80">
+                    No hay fechas ocupadas informadas para este alojamiento.
+                  </p>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    {bookedRanges.map((range, index) => (
+                      <div
+                        key={`${range.checkIn}-${range.checkOut}-${index}`}
+                        className="rounded-xl border border-border bg-background/60 px-4 py-3 text-sm text-secondary/90"
+                      >
+                        {formatDateLabel(range.checkIn)} -{" "}
+                        {formatDateLabel(range.checkOut)}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <button
               className="mt-6 w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:opacity-95"
-              onClick={() => alert("Sprint 1: reservar (UI)")}
+              onClick={() => alert("Sprint 4: reservar")}
             >
               Reservar
             </button>
           </aside>
         </div>
+
+        <section className="mt-10 w-full">
+          <h2 className="font-serif text-2xl font-semibold text-primary underline decoration-2 underline-offset-4">
+            Políticas
+          </h2>
+
+          <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3">
+            <article className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <h3 className="font-semibold text-primary">Normas de la casa</h3>
+              <p className="mt-3 whitespace-pre-line text-sm text-secondary/90">
+                {data?.houseRules || "No hay políticas informadas."}
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <h3 className="font-semibold text-primary">Salud y seguridad</h3>
+              <p className="mt-3 whitespace-pre-line text-sm text-secondary/90">
+                {data?.healthAndSafety || "No hay políticas informadas."}
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <h3 className="font-semibold text-primary">
+                Política de cancelación
+              </h3>
+              <p className="mt-3 whitespace-pre-line text-sm text-secondary/90">
+                {data?.cancellationPolicy || "No hay políticas informadas."}
+              </p>
+            </article>
+          </div>
+        </section>
       </div>
     </>
   );

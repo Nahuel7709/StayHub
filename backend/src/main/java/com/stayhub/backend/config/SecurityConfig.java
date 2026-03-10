@@ -65,6 +65,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/accommodations").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/accommodations/**").hasRole("ADMIN")
 
+                        .requestMatchers(HttpMethod.GET, "/accommodations/*/availability").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/accommodations/**").permitAll()
+
                         .requestMatchers(HttpMethod.POST, "/features/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/features/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/features/**").permitAll()
@@ -73,8 +76,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
-
-                        .requestMatchers(HttpMethod.GET, "/accommodations/**").permitAll()
 
                         .anyRequest().permitAll()
                 )

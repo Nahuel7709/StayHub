@@ -1,18 +1,81 @@
 # StayHub
 
-Plataforma web tipo Booking para **explorar alojamientos** (hoteles, casas, departamentos, etc.) y gestionar un catálogo desde un panel de administración.  
-Proyecto final (Digital House).
+StayHub es una plataforma web tipo Booking para **explorar alojamientos** (hoteles, casas, departamentos, hostels, BnB) y administrar el catálogo desde un panel interno.
+
+Proyecto final de **Digital House**.
 
 ---
 
 ## Estado del proyecto
-- ✅ **Sprint 1 (Backend):** API base de accommodations (CRUD + paginación + random + admin list) + validaciones + manejo de errores + seed de datos.
-- ⏳ **Sprint 1 (Frontend):** en progreso.
+
+### ✅ Sprint 1
+- Home pública
+- Listado de alojamientos
+- Detalle de alojamiento
+- Panel de administración base
+- Backend inicial de accommodations
+- Seeder de datos
+- Paginación, recomendados y listados random
+
+### ✅ Sprint 2
+- Autenticación con JWT
+- Registro y login
+- Endpoint `/auth/me`
+- Roles `ADMIN` y `USER`
+- CRUD y administración de categorías
+- CRUD y administración de características
+- Relación many-to-many entre alojamientos y características
+- Detalle enriquecido con categoría, features e imágenes
+- Upload de imágenes para alojamientos
+- Frontend conectado a backend real
+
+### ✅ Sprint 3
+- Búsqueda real de alojamientos por texto
+- Búsqueda con rango de fechas
+- Disponibilidad por alojamiento
+- Endpoint de disponibilidad
+- Seeder de reservas de ejemplo
+- Bloque de políticas del producto
+- Visualización de fechas ocupadas en el detalle
+- Consulta de disponibilidad desde el detalle
+- Listado filtrado por disponibilidad
 
 ---
+
+## Funcionalidades actuales
+
+### Público
+- Ver home
+- Explorar alojamientos
+- Buscar por ciudad, país o nombre del alojamiento
+- Filtrar por fechas disponibles
+- Ver detalle de cada alojamiento
+- Ver políticas del alojamiento
+- Consultar disponibilidad de fechas
+- Ver categorías y características
+
+### Usuario autenticado
+- Registrarse
+- Iniciar sesión
+- Consultar su sesión con `/auth/me`
+
+### Administrador
+- Crear alojamientos
+- Eliminar alojamientos
+- Crear y eliminar categorías
+- Crear, editar y eliminar características
+- Acceder al panel de administración
+
+---
+
 ## Documentación
-- Bitácora / Definición del proyecto (Sprint 1): ./docs/Documentación-Sprint 1.pdf
-- Manual de Identidad: ./docs/Presentación Manual de Identidad StayHub.pdf
+
+En la carpeta `docs/` se incluye material del proyecto, por ejemplo:
+
+- Bitácora / resumen Sprint 1
+- Bitácora / resumen Sprint 2
+- Manual de identidad de marca
+
 ---
 
 ## Tech Stack
@@ -20,128 +83,187 @@ Proyecto final (Digital House).
 ### Backend
 - Java 17
 - Spring Boot
-- Spring Web + Spring Data JPA
-- MySQL (Docker)
+- Spring Web
+- Spring Data JPA
+- Spring Security
+- JWT
+- MySQL
 - Swagger / OpenAPI
 
 ### Frontend
-- React + Vite
+- React
+- Vite
 - Tailwind CSS
-- React Router
+- React Router DOM
 - Axios
 
 ### Infra / entorno
 - Docker
 - Docker Compose
+
 ---
 
-## Estructura del repo
+## Estructura del repositorio
+
+```text
 stayhub/
-  -backend/ # API Spring Boot
-  -frontend/ # React + Vite + Tailwind
-  -docs/ # Documentación del proyecto
-  -docker-compose.yml
+├── backend/              # API Spring Boot
+├── frontend/             # React + Vite + Tailwind
+├── docs/                 # Documentación del proyecto
+└── docker-compose.yml
+```
+---
 
 ## Requisitos
 - Docker + Docker Compose
-- Java 17 (recomendado: Temurin)
-- Node.js (para frontend)
+- Java 17
+- Node.js
+- npm
 
-## Nota Seed de datos (dev)
+---
 
-El backend incluye un seeder que carga datos iniciales cuando la base está vacía.
-Si querés “reiniciar” datos de cero:
+## Como correr el proyecto en local 
 
+1) Levantar la base de datos
+Desde la raíz del repo:
+```docker compose up -d```
+
+2) Configurar variables de entorno
+Crear el archivo backend/.env con:
+DB_URL=jdbc:mysql://localhost:3306/stayhub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+DB_USERNAME=root
+DB_PASSWORD=root
+JWT_SECRET=stayhub_super_secret_key_2026_muy_larga_y_segura
+JWT_EXPIRATION_MS=86400000
+
+3) Correr el backend
+Desde backend/:
+
+#### Git Bash / WSL / Linux / macOS
+```./mvnw spring-boot:run```
+
+#### PowerShell
+```.\mvnw.cmd spring-boot:run```
+
+#### CMD
+```mvnw.cmd spring-boot:run```
+
+Backend disponible en:
+- API base: http://localhost:8080/api
+- Health: http://localhost:8080/api/health
+- Swagger UI: http://localhost:8080/api/swagger-ui/index.html
+
+
+4) Correr el frontend
+
+Desde frontend/:
+```
+npm install
+npm run dev 
+```
+Frontend disponible en:
+- http://localhost:5173
+
+---
+
+## Seed de datos de desarrollo
+
+El backend incluye un seeder que crea automáticamente:
+
+- Usuario administrador
+
+- Usuario estándar
+
+- Categorías
+
+- Características
+
+- Alojamientos de ejemplo
+
+- Políticas por tipo de alojamiento
+
+- Reservas de ejemplo para probar disponibilidad
+
+- Usuarios seed
+
+#### ADMIN
+
+- Email: admin@stayhub.com
+- Password: Admin12345
+
+#### USER
+
+- Email: user@stayhub.com
+- Password: User12345
+
+## Reiniciar datos de desarrollo
+
+Si querés reiniciar la base desde cero:
+```
 docker compose down -v
 docker compose up -d
+```
+Si además querés borrar imágenes subidas manualmente:
 
-Y para las imagenes que subiste de alojamientos que creaste(uploads):
--Windows (PowerShell):
-```Remove-Item -Recurse -Force backend\uploads ```
+- PowerShell:
+```Remove-Item -Recurse -Force backend\uploads```
 
--Remove-Item -Recurse -Force backend\uploads:
+- Git Bash / Linux / macOS
 ```rm -rf backend/uploads```
-
 
 Luego reiniciá el backend.
 
---------------
-
-## Cómo correr el proyecto (local)
-
-### 1) Levantar la base de datos
-Desde la **raíz** del repo:
-
-```bash
-docker compose up -d
-```
-
-### 2) Configurar variables de entorno
-Crear el archivo backend/.env  con:
-- DB_URL=jdbc:mysql://localhost:3306/stayhub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-- DB_USERNAME=root
-- DB_PASSWORD=root
-- JWT_SECRET=stayhub_super_secret_key_2026_muy_larga_y_segura
-- JWT_EXPIRATION_MS=86400000
-
-### 3) Correr el backend
-Desde backend/:
--En terminal de Git Bash, WSL o Linux/macOS:
-```./mvnw spring-boot:run```
--En terminal powershell:
-```.\mvnw.cmd spring-boot:run```
-CMD:
-```mvnw.cmd spring-boot:run```
-
-El backend corre en:
-
-API base: http://localhost:8080/api
-
-Health: http://localhost:8080/api/health
-
-Swagger UI: http://localhost:8080/api/swagger-ui/index.html
-
-### 4) Correr el frontend
-```
-npm install
-npm run dev
-```
 ---
-### IMPORTANTE: El proyecto incluye usuarios seed para facilitar pruebas y corrección.
-Sin loguearse como admin se bloquea el acceso a ciertas rutas, info:
+## Endpoints principales
 
-###Admin:
--Email: admin@stayhub.com
--Password: Admin12345
+### Auth
 
-###User
--Email: user@stayhub.com
--Password: User12345
+- POST /auth/register
+- POST /auth/login
+- GET /auth/me
 
-##Accesos
+### Accommodations
 
-###Público:
+-GET /accommodations
+-GET /accommodations/random
+-GET /accommodations/{id}
+-GET /accommodations/{id}/availability
+-POST /accommodations (ADMIN)
+-DELETE /accommodations/{id} (ADMIN)
+-GET /accommodations/admin (ADMIN)
+-GET /accommodations/admin/cards (ADMIN)
 
--POST /auth/register
+### Categories
 
--POST /auth/login
+-GET /categories
+-POST /categories (ADMIN)
+-DELETE /categories/{id} (ADMIN)
 
--GET /accommodations/**
+### Features
 
-###Requiere autenticación:
+- GET /features
+- POST /features (ADMIN)
+- PUT /features/{id} (ADMIN)
+- DELETE /features/{id} (ADMIN)
 
--GET /auth/me
+---
+## Búsqueda y disponibilidad
 
-###Solo ADMIN:
+Actualmente el endpoint GET /accommodations soporta:
 
-POST:
--/accommodations
+- page
+- size
+- categoryId
+- query
+- startDate
+- endDate
 
-DELETE:
--/accommodations/{id}
--/accommodations/admin/**
+Ejemplo:
+GET /api/accommodations?query=bariloche&startDate=2026-03-20&endDate=2026-03-24&size=10
 
---------
+Y cada alojamiento expone disponibilidad con:
+GET /api/accommodations/{id}/availability
+GET /api/accommodations/{id}/availability?startDate=2026-03-20&endDate=2026-03-24
 
-## 👤 Autor
-- [@Nahuel7709] (https://github.com/Nahuel7709)
+---
+## Autor: Nahuel7709

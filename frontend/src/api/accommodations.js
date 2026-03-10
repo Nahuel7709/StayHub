@@ -18,10 +18,17 @@ export async function fetchAccommodationsPage({
   page = 0,
   size = 10,
   categoryId,
+  query,
+  startDate,
+  endDate,
 } = {}) {
   try {
     const params = { page, size };
+
     if (categoryId) params.categoryId = categoryId;
+    if (query?.trim()) params.query = query.trim();
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
 
     const res = await api.get("/accommodations", { params });
     return res.data;
@@ -37,6 +44,29 @@ export async function fetchAccommodationById(id) {
   } catch (err) {
     const data = err?.response?.data;
     throw new Error(data?.message || err?.message || "Error cargando detalle");
+  }
+}
+
+export async function fetchAccommodationAvailability(
+  id,
+  { startDate, endDate } = {},
+) {
+  try {
+    const params = {};
+
+    if ((startDate && !endDate) || (!startDate && endDate)) {
+      throw new Error("Debés ingresar check-in y check-out juntos");
+    }
+
+    if (startDate && endDate) {
+      params.startDate = startDate;
+      params.endDate = endDate;
+    }
+
+    const res = await api.get(`/accommodations/${id}/availability`, { params });
+    return res.data;
+  } catch (err) {
+    throw new Error(toErrorMessage(err));
   }
 }
 

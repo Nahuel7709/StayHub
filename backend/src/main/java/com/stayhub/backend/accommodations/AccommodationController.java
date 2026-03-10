@@ -6,11 +6,13 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Validated
@@ -39,9 +41,16 @@ public class AccommodationController {
     public Page<AccommodationCardResponse> list(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size,
-            @RequestParam(required = false) String categoryId
+            @RequestParam(required = false) String categoryId,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate
     ) {
-        return service.list(page, size, categoryId);
+        return service.list(page, size, categoryId, query, startDate, endDate);
     }
 
     @GetMapping("/random")
@@ -59,6 +68,19 @@ public class AccommodationController {
     @GetMapping("/admin/cards")
     public List<AccommodationCardResponse> adminCards() {
         return service.adminCards();
+    }
+
+    @GetMapping("/{id}/availability")
+    public AccommodationAvailabilityResponse getAvailability(
+            @PathVariable String id,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate
+    ) {
+        return service.getAvailability(id, startDate, endDate);
     }
 
     @GetMapping("/{id}")

@@ -18,12 +18,29 @@ function SkeletonCard() {
   );
 }
 
+function formatDateLabel(value) {
+  if (!value) return "";
+
+  try {
+    return new Intl.DateTimeFormat("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(new Date(`${value}T00:00:00`));
+  } catch {
+    return value;
+  }
+}
+
 export default function AccommodationsList() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
 
   const page = Math.max(0, Number(params.get("page") ?? 0));
   const categoryId = params.get("categoryId") || "";
+  const query = params.get("query") || "";
+  const startDate = params.get("startDate") || "";
+  const endDate = params.get("endDate") || "";
   const size = 10;
 
   const [data, setData] = useState(null);
@@ -42,6 +59,9 @@ export default function AccommodationsList() {
     [categories, categoryId],
   );
 
+  const hasActiveFilters =
+    !!categoryId || !!query || (!!startDate && !!endDate);
+
   const rangeText = useMemo(() => {
     if (!totalElements) return "Mostrando 0 resultados";
     const start = number * size + 1;
@@ -54,7 +74,14 @@ export default function AccommodationsList() {
     setError("");
 
     try {
-      const res = await fetchAccommodationsPage({ page, size, categoryId });
+      const res = await fetchAccommodationsPage({
+        page,
+        size,
+        categoryId,
+        query,
+        startDate,
+        endDate,
+      });
       setData(res);
     } catch (e) {
       setError(e?.message ?? "Error cargando listado");
@@ -83,7 +110,7 @@ export default function AccommodationsList() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, categoryId]);
+  }, [page, categoryId, query, startDate, endDate]);
 
   function goToPage(p) {
     const next = new URLSearchParams(params);
@@ -91,9 +118,8 @@ export default function AccommodationsList() {
     setParams(next);
   }
 
-  function clearCategoryFilter() {
-    const next = new URLSearchParams(params);
-    next.delete("categoryId");
+  function clearAllFilters() {
+    const next = new URLSearchParams();
     next.set("page", "0");
     setParams(next);
   }
@@ -106,17 +132,32 @@ export default function AccommodationsList() {
             Explorar
           </h1>
 
-          {categoryId && !loadingCategories && activeCategory ? (
+          {hasActiveFilters ? (
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                Categoría: {activeCategory.name}
-              </span>
+              {query ? (
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                  Búsqueda: {query}
+                </span>
+              ) : null}
+
+              {categoryId && !loadingCategories && activeCategory ? (
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                  Categoría: {activeCategory.name}
+                </span>
+              ) : null}
+
+              {startDate && endDate ? (
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                  Fechas: {formatDateLabel(startDate)} -{" "}
+                  {formatDateLabel(endDate)}
+                </span>
+              ) : null}
 
               <button
-                onClick={clearCategoryFilter}
+                onClick={clearAllFilters}
                 className="text-sm font-semibold text-primary hover:underline"
               >
-                Limpiar filtro
+                Limpiar filtros
               </button>
             </div>
           ) : null}
@@ -152,7 +193,26 @@ export default function AccommodationsList() {
         </div>
       )}
 
-      {!loading && !error && (
+      {!loading && !error && content.length === 0 && (
+        <div className="mt-6 rounded-2xl border border-border bg-card p-6">
+          <h2 className="font-serif text-xl font-semibold text-primary">
+            No se encontraron alojamientos
+          </h2>
+          <p className="mt-2 text-sm text-secondary/80">
+            Probá con otro destino o cambiá las fechas de tu búsqueda.
+          </p>
+          {hasActiveFilters ? (
+            <button
+              onClick={clearAllFilters}
+              className="mt-4 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-95"
+            >
+              Limpiar filtros
+            </button>
+          ) : null}
+        </div>
+      )}
+
+      {!loading && !error && content.length > 0 && (
         <>
           <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2">
             {content.map((item) => (

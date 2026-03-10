@@ -46,6 +46,15 @@ public class Accommodation {
     @Column(nullable = true, precision = 12, scale = 2)
     private BigDecimal pricePerNight;
 
+    @Column(length = 2000)
+    private String houseRules;
+
+    @Column(length = 2000)
+    private String healthAndSafety;
+
+    @Column(length = 2000)
+    private String cancellationPolicy;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;

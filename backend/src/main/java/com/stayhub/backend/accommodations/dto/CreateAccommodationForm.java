@@ -1,14 +1,16 @@
 package com.stayhub.backend.accommodations.dto;
 
 import com.stayhub.backend.accommodations.AccommodationType;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@Getter
+@Setter
 public class CreateAccommodationForm {
 
     @NotBlank
@@ -30,6 +32,7 @@ public class CreateAccommodationForm {
     @Size(max = 80)
     private String country;
 
+    @DecimalMin(value = "0.0", inclusive = false)
     private BigDecimal pricePerNight;
 
     private String categoryId;
@@ -38,30 +41,12 @@ public class CreateAccommodationForm {
 
     private MultipartFile[] images;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    @Size(max = 2000)
+    private String houseRules;
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    @Size(max = 2000)
+    private String healthAndSafety;
 
-    public AccommodationType getType() { return type; }
-    public void setType(AccommodationType type) { this.type = type; }
-
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
-
-    public String getCountry() { return country; }
-    public void setCountry(String country) { this.country = country; }
-
-    public BigDecimal getPricePerNight() { return pricePerNight; }
-    public void setPricePerNight(BigDecimal pricePerNight) { this.pricePerNight = pricePerNight; }
-
-    public String getCategoryId() { return categoryId; }
-    public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
-
-    public List<String> getFeatureIds() { return featureIds; }
-    public void setFeatureIds(List<String> featureIds) { this.featureIds = featureIds; }
-
-    public MultipartFile[] getImages() { return images; }
-    public void setImages(MultipartFile[] images) { this.images = images; }
+    @Size(max = 2000)
+    private String cancellationPolicy;
 }
