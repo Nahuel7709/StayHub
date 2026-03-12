@@ -4,6 +4,7 @@ import { fetchAccommodationsPage } from "../api/accommodations";
 import { fetchCategories } from "../api/categories";
 import AccommodationCard from "../components/AccommodationCard";
 import Pagination from "../components/Pagination";
+import { useFavorites } from "../hooks/useFavorites";
 
 function SkeletonCard() {
   return (
@@ -48,6 +49,8 @@ export default function AccommodationsList() {
   const [loading, setLoading] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [error, setError] = useState("");
+
+  const { favoriteIdsSet, togglingIds, toggleFavorite } = useFavorites();
 
   const totalElements = data?.totalElements ?? 0;
   const totalPages = data?.totalPages ?? 0;
@@ -219,6 +222,9 @@ export default function AccommodationsList() {
               <AccommodationCard
                 key={item.id}
                 item={item}
+                isFavorite={favoriteIdsSet.has(item.id)}
+                favoriteDisabled={togglingIds.has(item.id)}
+                onToggleFavorite={toggleFavorite}
                 onViewDetail={(id) => navigate(`/accommodations/${id}`)}
               />
             ))}

@@ -14,6 +14,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import com.stayhub.backend.reviews.ReviewRepository;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -29,6 +30,7 @@ public class AccommodationService {
     private final CategoryRepository categoryRepository;
     private final FeatureRepository featureRepository;
     private final ReservationRepository reservationRepository;
+    private final ReviewRepository reviewRepository;
 
     private static final Set<ReservationStatus> ACTIVE_RESERVATION_STATUSES =
             EnumSet.of(ReservationStatus.PENDING, ReservationStatus.CONFIRMED);
@@ -284,6 +286,55 @@ public class AccommodationService {
         return list.stream().map(this::toCard).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<SearchSuggestionResponse> suggestions(String query, int limit) {
+        String normalizedQuery = normalizeNullable(query);
+        int safeLimit = Math.max(1, Math.min(limit, 10));
+
+        if (normalizedQuery == null || normalizedQuery.length() < 2) {
+            return List.of();
+        }
+
+        List<Accommodation> matches = repo.search(
+                null,
+                normalizedQuery,
+                Sort.by("name").ascending()
+        );
+
+        Map<String, SearchSuggestionResponse> suggestions = new LinkedHashMap<>();
+
+        for (Accommodation accommodation : matches) {
+            addSuggestion(
+                    suggestions,
+                    accommodation.getId(),
+                    accommodation.getName(),
+                    "ALOJAMIENTO"
+            );
+
+            addSuggestion(
+                    suggestions,
+                    null,
+                    accommodation.getCity(),
+                    "CIUDAD"
+            );
+
+            addSuggestion(
+                    suggestions,
+                    null,
+                    accommodation.getCountry(),
+                    "PAIS"
+            );
+
+            if (suggestions.size() >= safeLimit) {
+                break;
+            }
+        }
+
+        return suggestions.values().stream()
+                .limit(safeLimit)
+                .toList();
+    }
+
     private Category resolveCategory(String categoryId) {
         if (categoryId == null || categoryId.isBlank()) {
             return null;
@@ -332,6 +383,9 @@ public class AccommodationService {
                 ))
                 .toList();
 
+        Double averageRating = reviewRepository.findAverageScoreByAccommodationId(a.getId());
+        long reviewsCount = reviewRepository.countByAccommodationId(a.getId());
+
         return new AccommodationResponse(
                 a.getId(),
                 a.getName(),
@@ -345,7 +399,9 @@ public class AccommodationService {
                 images,
                 a.getHouseRules(),
                 a.getHealthAndSafety(),
-                a.getCancellationPolicy()
+                a.getCancellationPolicy(),
+                averageRating,
+                reviewsCount
         );
     }
 
@@ -360,6 +416,9 @@ public class AccommodationService {
             );
         }
 
+        Double averageRating = reviewRepository.findAverageScoreByAccommodationId(a.getId());
+        long reviewsCount = reviewRepository.countByAccommodationId(a.getId());
+
         return new AccommodationCardResponse(
                 a.getId(),
                 a.getName(),
@@ -367,7 +426,9 @@ public class AccommodationService {
                 a.getCountry(),
                 a.getPricePerNight(),
                 firstImage,
-                category
+                category,
+                averageRating,
+                reviewsCount
         );
     }
 
@@ -392,5 +453,24 @@ public class AccommodationService {
         if (startDate != null && !startDate.isBefore(endDate)) {
             throw new IllegalArgumentException("La fecha de check-in debe ser anterior al check-out");
         }
+    }
+
+    private void addSuggestion(
+            Map<String, SearchSuggestionResponse> suggestions,
+            String id,
+            String value,
+            String type
+    ) {
+        if (value == null) return;
+
+        String trimmed = value.trim();
+        if (trimmed.isBlank()) return;
+
+        String key = type + "::" + trimmed.toLowerCase();
+
+        suggestions.putIfAbsent(
+                key,
+                new SearchSuggestionResponse(id, trimmed, trimmed, type)
+        );
     }
 }

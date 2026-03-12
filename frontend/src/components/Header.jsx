@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/hooks/useAuth";
 
-
 export default function Header() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -36,7 +35,16 @@ export default function Header() {
           </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden items-center gap-2 md:flex">
+          {isAuthenticated && (
+            <Link
+              to="/favoritos"
+              className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-primary hover:bg-zinc-50"
+            >
+              Favoritos
+            </Link>
+          )}
+
           {isAdmin && (
             <Link
               to="/administracion"
@@ -82,7 +90,7 @@ export default function Header() {
         </div>
 
         <button
-          className="md:hidden inline-flex items-center justify-center rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-primary hover:bg-zinc-50"
+          className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-primary hover:bg-zinc-50 md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label="Abrir menú"
           aria-expanded={open}
@@ -92,8 +100,18 @@ export default function Header() {
       </div>
 
       {open && (
-        <div className="md:hidden border-t border-border bg-white/90 backdrop-blur">
+        <div className="border-t border-border bg-white/90 backdrop-blur md:hidden">
           <div className="mx-auto flex flex-col gap-2 px-6 py-4">
+            {isAuthenticated && (
+              <Link
+                to="/favoritos"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center justify-center rounded-xl border border-border bg-card px-4 py-3 text-center text-sm font-semibold text-primary hover:bg-zinc-50"
+              >
+                Favoritos
+              </Link>
+            )}
+
             {isAdmin && (
               <Link
                 to="/administracion"

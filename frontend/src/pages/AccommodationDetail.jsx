@@ -6,6 +6,12 @@ import {
 } from "../api/accommodations";
 import ImageGallery from "../components/ImageGallery";
 import FeatureIcon from "../components/FeatureIcon";
+import DateRangeCalendar from "../components/DateRangeCalendar";
+import { useFavorites } from "../hooks/useFavorites";
+import { useAuth } from "../auth/hooks/useAuth";
+import AuthRequiredModal from "../components/AuthRequiredModal";
+import ShareProductModal from "../components/ShareProductModal";
+import ReviewsSection from "../components/ReviewsSection";
 
 function formatPrice(value) {
   if (value == null) return null;
@@ -55,6 +61,12 @@ export default function AccommodationDetail() {
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [availabilityError, setAvailabilityError] = useState("");
   const [availabilityMessage, setAvailabilityMessage] = useState("");
+
+  const { isAuthenticated } = useAuth();
+  const { isFavorite, toggleFavorite, togglingIds } = useFavorites();
+  const [favoriteFeedback, setFavoriteFeedback] = useState("");
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const images = useMemo(() => data?.images ?? [], [data]);
   const features = useMemo(() => data?.features ?? [], [data]);
@@ -143,6 +155,49 @@ export default function AccommodationDetail() {
     }
   }
 
+  async function handleToggleFavorite() {
+    setFavoriteFeedback("");
+
+    try {
+      const nextValue = await toggleFavorite(id);
+
+      setFavoriteFeedback(
+        nextValue
+          ? "Alojamiento agregado a favoritos."
+          : "Alojamiento quitado de favoritos.",
+      );
+    } catch (e) {
+      const message = e?.message ?? "No se pudo actualizar el favorito.";
+
+      if (message.toLowerCase().includes("iniciar sesión")) {
+        setShowAuthModal(true);
+        return;
+      }
+
+      setFavoriteFeedback(message);
+    }
+  }
+
+  function handleReviewCreated(review) {
+    setData((prev) => {
+      if (!prev) return prev;
+
+      const prevCount = prev.reviewsCount ?? 0;
+      const prevAverage = prev.averageRating ?? 0;
+      const nextCount = prevCount + 1;
+      const nextAverage =
+        prevCount === 0
+          ? review.score
+          : (prevAverage * prevCount + review.score) / nextCount;
+
+      return {
+        ...prev,
+        averageRating: nextAverage,
+        reviewsCount: nextCount,
+      };
+    });
+  }
+
   if (loading) return <Skeleton />;
 
   if (error) {
@@ -203,18 +258,61 @@ export default function AccommodationDetail() {
                   {price} / noche
                 </span>
               ) : null}
+
+              {data?.reviewsCount > 0 ? (
+                <span className="rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-primary">
+                  ★ {data.averageRating?.toFixed(1)} · {data.reviewsCount}{" "}
+                  reseña
+                  {data.reviewsCount === 1 ? "" : "s"}
+                </span>
+              ) : (
+                <span className="rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-secondary/70">
+                  Sin reseñas
+                </span>
+              )}
             </div>
           </div>
 
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-primary hover:bg-background"
-          >
-            <span aria-hidden>←</span>
-            Volver
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleToggleFavorite}
+              disabled={togglingIds.has(id)}
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-primary hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span className={isFavorite(id) ? "text-accent" : "text-primary"}>
+                {isFavorite(id) ? "♥" : "♡"}
+              </span>
+              {isFavorite(id) ? "Favorito" : "Guardar"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowShareModal(true)}
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-primary hover:bg-background"
+            >
+              ↗ Compartir
+            </button>
+
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-primary hover:bg-background"
+            >
+              <span aria-hidden>←</span>
+              Volver
+            </Link>
+          </div>
         </div>
       </div>
+
+      {favoriteFeedback ? (
+        <div className="mx-auto mt-4 max-w-screen-xl px-6">
+          <div className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-secondary/90">
+            {favoriteFeedback}
+            {!isAuthenticated ? " Iniciá sesión para guardar favoritos." : ""}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mx-auto max-w-screen-xl px-6 py-10">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -262,35 +360,23 @@ export default function AccommodationDetail() {
                 Consultar disponibilidad
               </div>
 
-              <div className="mt-4 grid grid-cols-1 gap-3">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-secondary/70">
-                    Check-in
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-primary outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-secondary/70">
-                    Check-out
-                  </label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-primary outline-none"
-                  />
-                </div>
+              <div className="mt-4">
+                <DateRangeCalendar
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={({ startDate: nextStart, endDate: nextEnd }) => {
+                    setStartDate(nextStart);
+                    setEndDate(nextEnd);
+                  }}
+                  disabledRanges={bookedRanges}
+                  minDate={new Date()}
+                  compactWeekDays
+                />
 
                 <button
                   onClick={handleCheckAvailability}
                   disabled={availabilityLoading}
-                  className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="mt-4 w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {availabilityLoading
                     ? "Consultando..."
@@ -300,7 +386,19 @@ export default function AccommodationDetail() {
 
               {availabilityError ? (
                 <div className="mt-3 rounded-xl border border-accent/20 bg-accent/5 px-4 py-3 text-sm text-accent">
-                  {availabilityError}
+                  <div>{availabilityError}</div>
+                  <button
+                    onClick={async () => {
+                      if (startDate && endDate) {
+                        await handleCheckAvailability();
+                      } else {
+                        await loadAvailabilityWithoutDates();
+                      }
+                    }}
+                    className="mt-3 rounded-lg border border-accent/30 px-3 py-2 text-xs font-semibold hover:bg-accent/10"
+                  >
+                    Reintentar
+                  </button>
                 </div>
               ) : null}
 
@@ -350,6 +448,13 @@ export default function AccommodationDetail() {
           </aside>
         </div>
 
+        <ReviewsSection
+          accommodationId={id}
+          averageRating={data?.averageRating}
+          reviewsCount={data?.reviewsCount ?? 0}
+          onReviewCreated={handleReviewCreated}
+        />
+
         <section className="mt-10 w-full">
           <h2 className="font-serif text-2xl font-semibold text-primary underline decoration-2 underline-offset-4">
             Políticas
@@ -381,6 +486,20 @@ export default function AccommodationDetail() {
           </div>
         </section>
       </div>
+
+      <AuthRequiredModal
+        open={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
+
+      <ShareProductModal
+        key={`${id}-${showShareModal ? "open" : "closed"}`}
+        open={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        title={data?.name}
+        description={data?.description}
+        imageUrl={images[0]?.url || null}
+      />
     </>
   );
 }

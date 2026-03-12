@@ -22,6 +22,13 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             LocalDate startDate
     );
 
+    boolean existsByUserIdAndAccommodationIdAndStatusAndCheckOutBefore(
+            Long userId,
+            String accommodationId,
+            ReservationStatus status,
+            LocalDate date
+    );
+
     @Query("""
             select distinct r.accommodation.id
             from Reservation r

@@ -39,7 +39,11 @@ Proyecto final de **Digital House**.
 - Visualización de fechas ocupadas en el detalle
 - Consulta de disponibilidad desde el detalle
 - Listado filtrado por disponibilidad
-
+- Sistema de favoritos
+- Página de favoritos para usuarios autenticados
+- Compartir alojamiento en redes sociales
+- Sistema de valoraciones y reseñas
+- Promedio dinámico y cantidad de reseñas en cards y detalle
 ---
 
 ## Funcionalidades actuales
@@ -53,11 +57,16 @@ Proyecto final de **Digital House**.
 - Ver políticas del alojamiento
 - Consultar disponibilidad de fechas
 - Ver categorías y características
+- Ver reseñas de los alojamientos
+- Compartir alojamientos desde el detalle
 
 ### Usuario autenticado
 - Registrarse
 - Iniciar sesión
 - Consultar su sesión con `/auth/me`
+- Guardar y quitar favoritos
+- Ver su lista de favoritos
+- Publicar una valoración sobre un alojamiento si tiene una reserva finalizada
 
 ### Administrador
 - Crear alojamientos
@@ -74,7 +83,9 @@ En la carpeta `docs/` se incluye material del proyecto, por ejemplo:
 
 - Bitácora / resumen Sprint 1
 - Bitácora / resumen Sprint 2
+- Bitácora / resumen Sprint 3
 - Manual de identidad de marca
+- Planificación y ejecución de tests
 
 ---
 
@@ -184,7 +195,13 @@ El backend incluye un seeder que crea automáticamente:
 
 - Reservas de ejemplo para probar disponibilidad
 
-- Usuarios seed
+-Reservas pasadas para probar valoraciones
+
+-Reseñas de ejemplo
+
+---
+
+## Usuarios seed
 
 #### ADMIN
 
@@ -246,6 +263,13 @@ Luego reiniciá el backend.
 - PUT /features/{id} (ADMIN)
 - DELETE /features/{id} (ADMIN)
 
+### Favorites
+
+-GET /favorites/me (auth)
+-GET /favorites/me/ids (auth)
+-POST /favorites/{accommodationId} (auth)
+-DELETE /favorites/{accommodationId} (auth)
+
 ---
 ## Búsqueda y disponibilidad
 
@@ -265,5 +289,32 @@ Y cada alojamiento expone disponibilidad con:
 GET /api/accommodations/{id}/availability
 GET /api/accommodations/{id}/availability?startDate=2026-03-20&endDate=2026-03-24
 
+---
+## Favoritos
+Los usuarios autenticados pueden:
+- guardar alojamientos como favoritos
+- eliminarlos de favoritos
+- visualizarlos en la sección /favoritos
+
+## Valoraciones y reseñas
+
+Los alojamientos muestran:
+-promedio de puntuación
+-cantidad total de reseñas
+
+Además, un usuario autenticado puede publicar una valoración:
+- con puntaje de 1 a 5 estrellas
+- con comentario opcional
+- solo si tiene una reserva finalizada sobre ese alojamiento
+
+## Compartir productos
+
+Desde el detalle de cada alojamiento se puede:
+- compartir en WhatsApp
+- compartir en Facebook
+- compartir en X / Twitter
+- abrir Instagram como fallback
+- copiar link
+- copiar mensaje personalizado + link
 ---
 ## Autor: Nahuel7709

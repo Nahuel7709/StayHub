@@ -16,7 +16,11 @@ function SkeletonCard() {
   );
 }
 
-export default function Recommendations() {
+export default function Recommendations({
+  favoriteIdsSet,
+  togglingIds,
+  onToggleFavorite,
+}) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -91,6 +95,9 @@ export default function Recommendations() {
                 <AccommodationCard
                   key={item.id}
                   item={item}
+                  isFavorite={favoriteIdsSet?.has(item.id)}
+                  favoriteDisabled={togglingIds?.has(item.id)}
+                  onToggleFavorite={onToggleFavorite}
                   onViewDetail={(id) => navigate(`/accommodations/${id}`)}
                 />
               ))}

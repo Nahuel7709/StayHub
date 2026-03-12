@@ -37,6 +37,20 @@ export async function fetchAccommodationsPage({
   }
 }
 
+export async function fetchAccommodationSuggestions(query, limit = 8) {
+  try {
+    if (!query?.trim() || query.trim().length < 2) return [];
+
+    const res = await api.get("/accommodations/suggestions", {
+      params: { query: query.trim(), limit },
+    });
+
+    return Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    throw new Error(toErrorMessage(err));
+  }
+}
+
 export async function fetchAccommodationById(id) {
   try {
     const res = await api.get(`/accommodations/${id}`);

@@ -18,6 +18,8 @@ public record AccommodationResponse(
         List<AccommodationImageResponse> images,
         String houseRules,
         String healthAndSafety,
-        String cancellationPolicy
+        String cancellationPolicy,
+        Double averageRating,
+        long reviewsCount
 ) {
 }

@@ -93,4 +93,12 @@ public class AccommodationController {
     public void delete(@PathVariable String id) {
         service.delete(id);
     }
+
+    @GetMapping("/suggestions")
+    public List<SearchSuggestionResponse> suggestions(
+            @RequestParam(required = false) String query,
+            @RequestParam(defaultValue = "8") @Min(1) @Max(10) int limit
+    ) {
+        return service.suggestions(query, limit);
+    }
 }

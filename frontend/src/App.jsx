@@ -10,8 +10,10 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AdminRoute from "./auth/AdminRoute";
+import ProtectedRoute from "./auth/ProtectedRoute";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminFeatures from "./pages/admin/AdminFeatures";
+import FavoritesPage from "./pages/FavoritesPage";
 
 export default function App() {
   return (
@@ -24,6 +26,15 @@ export default function App() {
           <Route path="/accommodations/:id" element={<AccommodationDetail />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+
+          <Route
+            path="/favoritos"
+            element={
+              <ProtectedRoute>
+                <FavoritesPage />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/administracion"

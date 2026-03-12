@@ -9,5 +9,8 @@ public record AccommodationCardResponse(
         String country,
         BigDecimal pricePerNight,
         String imageUrl,
-        AccommodationCategoryResponse category
-) {}
+        AccommodationCategoryResponse category,
+        Double averageRating,
+        long reviewsCount
+) {
+}

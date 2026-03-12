@@ -867,6 +867,23 @@ public class DatabaseSeeder implements CommandLineRunner {
         seedReservation(
                 "Hotel Palermo Deluxe",
                 "user@stayhub.com",
+                today.minusDays(20),
+                today.minusDays(17),
+                ReservationStatus.CONFIRMED
+        );
+
+        seedReservation(
+                "Bariloche BNB Retreat",
+                "user@stayhub.com",
+                today.minusDays(12),
+                today.minusDays(9),
+                ReservationStatus.CONFIRMED
+        );
+
+
+        seedReservation(
+                "Hotel Palermo Deluxe",
+                "user@stayhub.com",
                 today.plusDays(5),
                 today.plusDays(9),
                 ReservationStatus.CONFIRMED
